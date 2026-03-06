@@ -78,7 +78,7 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
           <p className="text-sm text-gray-400 mb-3 text-center">
             Simule o lucro do ciclo completo com sugestões da IA para melhorar seu resultado.
           </p>
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
             <div>
               <label className="block text-xs text-gray-500 mb-1">Preço @ (R$)</label>
               <input type="number" value={customPrice} onChange={(e) => setCustomPrice(e.target.value)}
@@ -119,7 +119,7 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
             </div>
           )}
           <button onClick={handleSimulate}
-            className="w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm">
+            className="w-full px-6 py-3 min-h-[44px] bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm">
             💰 Simular Lucro do Ciclo
           </button>
         </div>

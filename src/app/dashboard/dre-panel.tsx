@@ -31,7 +31,7 @@ export default function DREPanel({ herdId, herdName }: { herdId: string, herdNam
       {!data && !loading && (
         <div className="text-center">
           <p className="text-sm text-gray-400 mb-3">Raio-X financeiro completo do lote com DRE, cenários e evolução.</p>
-          <button onClick={fetchDRE} className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm">
+          <button onClick={fetchDRE} className="px-6 py-3 min-h-[44px] bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm">
             📊 Gerar Raio-X Financeiro
           </button>
         </div>

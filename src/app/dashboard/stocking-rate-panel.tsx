@@ -64,9 +64,9 @@ export default function StockingRatePanel({ herdId, herdName, headCount, avgWeig
           </div>
           <div className="flex items-end">
             <button onClick={calculate} disabled={loading || !area}
-              className={'px-4 py-2 rounded-xl text-[12px] font-bold transition-all ' +
+              className={'px-4 py-2 min-h-[44px] rounded-xl text-[12px] font-bold transition-all ' +
                 (area ? 'btn-primary' : 'bg-zinc-800 text-zinc-600 cursor-not-allowed')}>
-              {loading ? '...' : 'Calcular'}
+              {loading ? <span className="spinner"></span> : 'Calcular'}
             </button>
           </div>
         </div>

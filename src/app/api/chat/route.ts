@@ -45,7 +45,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { messages, herd_context } = await request.json()
+    const body = await request.json()
+    const { messages, herd_context } = body
+
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
+      return NextResponse.json({ error: 'Mensagens inválidas' }, { status: 400 })
+    }
+
+    for (const m of messages) {
+      if (!m.role || !m.content || typeof m.content !== 'string' || m.content.length > 2000) {
+        return NextResponse.json({ error: 'Formato de mensagem inválido' }, { status: 400 })
+      }
+    }
 
     if (!ANTHROPIC_API_KEY) {
       return NextResponse.json({ error: 'API key não configurada' }, { status: 500 })

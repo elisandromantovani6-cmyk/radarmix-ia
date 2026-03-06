@@ -50,12 +50,14 @@ export default function MarketplacePage() {
   const sendQuote = async () => {
     const items = quoteItems.filter(i => i.quantity > 0)
     if (items.length === 0) return
-    await fetch('/api/marketplace/quote', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ supplier_id: quoteModal.id, items }),
-    })
-    setQuoteSent(true)
+    try {
+      const res = await fetch('/api/marketplace/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ supplier_id: quoteModal.id, items }),
+      })
+      if (res.ok) setQuoteSent(true)
+    } catch { /* erro de rede */ }
   }
 
   const totalQuote = quoteItems.reduce((sum, i) => sum + (i.price * i.quantity), 0)

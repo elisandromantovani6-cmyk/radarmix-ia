@@ -58,7 +58,7 @@ export default function OrderSection() {
         <button
           onClick={handleGenerateOrder}
           disabled={loading}
-          className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold rounded-lg disabled:opacity-50"
+          className="px-4 py-2 min-h-[44px] bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold rounded-lg disabled:opacity-50"
         >
           {loading ? 'Calculando...' : '📦 Gerar Pedido do Mês'}
         </button>
@@ -126,7 +126,7 @@ export default function OrderSection() {
               <button
                 onClick={handleSendOrder}
                 disabled={loading}
-                className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl disabled:opacity-50"
+                className="w-full py-3 min-h-[44px] bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl disabled:opacity-50"
               >
                 {loading ? 'Enviando...' : '✅ Confirmar Pedido'}
               </button>

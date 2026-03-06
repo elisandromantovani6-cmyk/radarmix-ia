@@ -65,7 +65,7 @@ export default function WeighingPanel({ herdId, herdName, currentWeight }: { her
           {error && <p className="text-red-400 text-xs mb-2">{error}</p>}
 
           <button onClick={handleSubmit} disabled={loading || !weight}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm disabled:opacity-50">
+            className="w-full py-3 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm disabled:opacity-50">
             {loading ? 'Registrando...' : '⚖️ Registrar Pesagem'}
           </button>
         </div>

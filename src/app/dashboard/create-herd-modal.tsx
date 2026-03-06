@@ -111,9 +111,9 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
   const availablePhases = PHASES[species] || []
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <h3 className="text-xl font-bold mb-1 text-white">Novo Lote</h3>
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 px-0 sm:px-4 modal-sheet" role="dialog" aria-labelledby="create-herd-title">
+      <div className="card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl">
+        <h3 id="create-herd-title" className="text-xl font-bold mb-1 text-white">Novo Lote</h3>
         <p className="text-xs text-gray-500 mb-4">Preencha o máximo possível para uma recomendação mais precisa</p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -125,18 +125,18 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Lote Recria Nelore"
               required
-              className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white text-sm focus:border-green-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
             />
           </div>
 
           {/* Espécie + Fase (lado a lado) */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-gray-400 mb-1">Espécie *</label>
               <select
                 value={species}
                 onChange={(e) => { setSpecies(e.target.value); setMainPhase(''); setBreedId('') }}
-                className="w-full px-3 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white text-sm focus:border-green-500 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
               >
                 {SPECIES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
@@ -147,7 +147,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
                 value={mainPhase}
                 onChange={(e) => setMainPhase(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white text-sm focus:border-green-500 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
               >
                 <option value="">Selecione...</option>
                 {availablePhases.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
@@ -156,7 +156,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
           </div>
 
           {/* Cabeças + Peso (lado a lado) */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-gray-400 mb-1">Cabeças *</label>
               <input
@@ -166,7 +166,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
                 placeholder="Ex: 150"
                 required
                 min={1}
-                className="w-full px-3 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white text-sm focus:border-green-500 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
               />
             </div>
             <div>
@@ -176,7 +176,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
                 value={avgWeight}
                 onChange={(e) => setAvgWeight(e.target.value)}
                 placeholder="Ex: 350"
-                className="w-full px-3 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white text-sm focus:border-green-500 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
               />
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
             <select
               value={breedId}
               onChange={(e) => setBreedId(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white text-sm focus:border-green-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
             >
               <option value="">Selecione (opcional)...</option>
               {filteredBreeds.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -195,13 +195,13 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
           </div>
 
           {/* Sexo + Capim (lado a lado) */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-gray-400 mb-1">Sexo</label>
               <select
                 value={sex}
                 onChange={(e) => setSex(e.target.value)}
-                className="w-full px-3 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white text-sm focus:border-green-500 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
               >
                 <option value="">Selecione...</option>
                 <option value="macho">Machos</option>
@@ -214,7 +214,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
               <select
                 value={forageId}
                 onChange={(e) => setForageId(e.target.value)}
-                className="w-full px-3 py-2.5 bg-gray-950 border border-gray-700 rounded-xl text-white text-sm focus:border-green-500 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
               >
                 <option value="">Selecione...</option>
                 {forages.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -228,14 +228,14 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm"
+              className="flex-1 py-3 min-h-[44px] btn-ghost rounded-xl text-sm"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-sm disabled:opacity-50"
+              className="flex-1 py-3 min-h-[44px] btn-primary rounded-xl text-sm disabled:opacity-50"
             >
               {loading ? 'Salvando...' : 'Criar Lote'}
             </button>

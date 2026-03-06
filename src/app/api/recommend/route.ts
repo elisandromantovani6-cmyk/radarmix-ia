@@ -14,6 +14,10 @@ export async function POST(request: NextRequest) {
 
     const { herd_id } = await request.json()
 
+    if (!herd_id || typeof herd_id !== 'string' || !/^[0-9a-f-]{36}$/i.test(herd_id)) {
+      return NextResponse.json({ error: 'ID de lote inválido' }, { status: 400 })
+    }
+
     // Buscar lote com dados completos
     const { data: herd, error: herdError } = await supabase
       .from('herds')

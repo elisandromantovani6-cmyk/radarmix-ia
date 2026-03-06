@@ -335,7 +335,7 @@ export default function CochoPanel({ herdId, herdName }: { herdId: string, herdN
                   />
                 </div>
                 {/* Marcadores de referência */}
-                <div className="flex justify-between mt-1 text-[9px] text-zinc-600">
+                <div className="flex justify-between mt-1 text-[11px] text-zinc-600">
                   <span>0%</span>
                   <span className="text-green-600">5%</span>
                   <span className="text-green-600">15%</span>
@@ -346,13 +346,13 @@ export default function CochoPanel({ herdId, herdName }: { herdId: string, herdN
               {/* Badges: qualidade + tipo */}
               <div className="flex flex-wrap gap-2">
                 <div>
-                  <span className="text-[9px] text-zinc-600 block mb-1">Qualidade da mistura</span>
+                  <span className="text-[11px] text-zinc-600 block mb-1">Qualidade da mistura</span>
                   <span className={"badge " + getQualidadeBadge(result.qualidade)}>
                     {result.qualidade}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[9px] text-zinc-600 block mb-1">Tipo de alimento</span>
+                  <span className="text-[11px] text-zinc-600 block mb-1">Tipo de alimento</span>
                   <span className={"badge " + getTipoAlimentoBadge(result.tipo_alimento)}>
                     {result.tipo_alimento}
                   </span>

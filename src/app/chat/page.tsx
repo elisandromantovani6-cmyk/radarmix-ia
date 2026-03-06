@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase'
 
 interface Message { role: 'user' | 'assistant'; content: string }
 const QUICK = ['Qual mineral usar na seca?', 'Pelo arrepiado, o que fazer?', 'Sal mineral por cabeça/dia?', 'Proteinado vs mineral?', 'Melhorar GMD na recria?']
@@ -13,12 +14,32 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) window.location.href = '/login'
+    }
+    checkAuth()
+  }, [])
+
   const send = async (text?: string) => {
     const msg = text || input.trim(); if (!msg) return
     const msgs: Message[] = [...messages, { role: 'user', content: msg }]
     setMessages(msgs); setInput(''); setLoading(true)
-    try { const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: msgs }) }); const d = await r.json(); setMessages([...msgs, { role: 'assistant', content: d.reply || 'Erro.' }]) }
-    catch { setMessages([...msgs, { role: 'assistant', content: 'Erro de conexão.' }]) }
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 30000)
+      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: msgs }), signal: controller.signal })
+      clearTimeout(timeout)
+      const d = await r.json()
+      setMessages([...msgs, { role: 'assistant', content: d.reply || 'Erro.' }])
+    } catch (err: any) {
+      const errorMsg = err.name === 'AbortError'
+        ? 'Resposta demorou demais. Tente novamente.'
+        : 'Erro de conexão. Verifique sua internet.'
+      setMessages([...msgs, { role: 'assistant', content: errorMsg }])
+    }
     setLoading(false); inputRef.current?.focus()
   }
 
@@ -35,7 +56,7 @@ export default function ChatPage() {
               <p className="text-[10px] text-orange-400 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-orange-500 pulse-dot inline-block"></span> Online</p>
             </div>
           </div>
-          <button onClick={() => setMessages([])} className="btn-ghost px-2.5 py-1 text-[11px] font-semibold">Limpar</button>
+          <button onClick={() => setMessages([])} className="btn-ghost px-3 py-2 min-h-[44px] text-[12px] font-semibold">Limpar</button>
         </div>
       </header>
 
@@ -91,7 +112,7 @@ export default function ChatPage() {
               placeholder="Pergunte sobre nutrição, suplementação..." disabled={loading}
               className="input-field flex-1 px-4 py-3 text-[14px] disabled:opacity-50" />
             <button onClick={() => send()} disabled={loading || !input.trim()}
-              className="btn-primary px-5 py-3 text-[13px] disabled:opacity-50">Enviar</button>
+              className="btn-primary px-5 py-3 min-h-[44px] text-[13px] disabled:opacity-50">Enviar</button>
           </div>
         </div>
       </div>

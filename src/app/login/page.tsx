@@ -46,17 +46,17 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-500 mb-2 uppercase tracking-[0.1em]">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required
+              <label htmlFor="login-email" className="block text-[11px] font-semibold text-zinc-400 mb-2 uppercase tracking-[0.1em]">Email</label>
+              <input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" required
                 className="input-field w-full px-4 py-3.5 text-[14px]" />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-500 mb-2 uppercase tracking-[0.1em]">Senha</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6}
+              <label htmlFor="login-password" className="block text-[11px] font-semibold text-zinc-400 mb-2 uppercase tracking-[0.1em]">Senha</label>
+              <input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6}
                 className="input-field w-full px-4 py-3.5 text-[14px]" />
             </div>
-            {error && <div className="bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3"><p className="text-red-400 text-[13px]">{error}</p></div>}
-            <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 text-[14px] disabled:opacity-50">
+            {error && <div role="alert" className="bg-red-500/8 border border-red-500/15 rounded-xl px-4 py-3"><p className="text-red-400 text-[13px]">{error}</p></div>}
+            <button type="submit" disabled={loading} aria-busy={loading} className="btn-primary w-full py-3.5 min-h-[44px] text-[14px] disabled:opacity-50">
               {loading ? 'Aguarde...' : mode === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
           </form>

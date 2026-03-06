@@ -425,7 +425,7 @@ export default function HealthPanel({ herdId, herdName, headCount }: { herdId: s
 
           {/* Botão de envio */}
           <button onClick={handleSubmit} disabled={submitting || !productName}
-            className="btn-primary w-full py-3 text-[12px] font-bold rounded-xl disabled:opacity-50">
+            className="btn-primary w-full py-3 min-h-[44px] text-[12px] font-bold rounded-xl disabled:opacity-50">
             {submitting ? 'Registrando...' : '💉 Registrar Evento Sanitário'}
           </button>
         </div>
@@ -485,7 +485,7 @@ export default function HealthPanel({ herdId, herdName, headCount }: { herdId: s
                   </div>
 
                   {/* Contagem */}
-                  <p className="text-[9px] text-zinc-600">
+                  <p className="text-[11px] text-zinc-600">
                     {monthProtocols.length > 0 && `${monthProtocols.length} prot.`}
                     {hasEvents && ` ${monthEvents.length} reg.`}
                   </p>
@@ -498,15 +498,15 @@ export default function HealthPanel({ herdId, herdName, headCount }: { herdId: s
           <div className="flex justify-center gap-4 mt-3">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-[9px] text-zinc-600">Obrigatório</span>
+              <span className="text-[11px] text-zinc-600">Obrigatório</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-blue-500" />
-              <span className="text-[9px] text-zinc-600">Recomendado</span>
+              <span className="text-[11px] text-zinc-600">Recomendado</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[9px] text-zinc-600">Realizado</span>
+              <span className="text-[11px] text-zinc-600">Realizado</span>
             </div>
           </div>
 
@@ -559,12 +559,12 @@ export default function HealthPanel({ herdId, herdName, headCount }: { herdId: s
                 setAiLoading(false)
               }}
               disabled={aiLoading}
-              className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all">
+              className="flex-1 py-2.5 min-h-[44px] bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all">
               {aiLoading ? 'Consultando IA...' : '\uD83E\uDE7A Gerar Sugest\u00f5es Sanit\u00e1rias'}
             </button>
             <button
               onClick={() => window.open('/api/health/report?herd_id=' + herdId, '_blank')}
-              className="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition-all">
+              className="py-2.5 px-4 min-h-[44px] bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition-all">
               \uD83D\uDCCB Relat\u00f3rio GTA
             </button>
           </div>

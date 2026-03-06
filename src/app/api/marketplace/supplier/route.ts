@@ -32,6 +32,15 @@ export async function POST(request: NextRequest) {
 
     if (action === 'update_supplier') {
       const { name, city, phone, description } = body
+      if (!name || typeof name !== 'string' || name.length > 200) {
+        return NextResponse.json({ error: 'Nome inválido' }, { status: 400 })
+      }
+      if (city && (typeof city !== 'string' || city.length > 100)) {
+        return NextResponse.json({ error: 'Cidade inválida' }, { status: 400 })
+      }
+      if (phone && (typeof phone !== 'string' || phone.length > 20)) {
+        return NextResponse.json({ error: 'Telefone inválido' }, { status: 400 })
+      }
       const { data, error } = await supabase
         .from('marketplace_suppliers')
         .upsert({ user_id: user.id, name, city, phone, description }, { onConflict: 'user_id' })

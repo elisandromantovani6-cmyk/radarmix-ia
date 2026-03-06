@@ -1,5 +1,9 @@
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 
+function sanitize(str: string): string {
+  return str.replace(/[`${}\\]/g, '').slice(0, 500)
+}
+
 interface ClaudeResponse {
   content: { type: string; text: string }[]
 }
@@ -65,25 +69,25 @@ export function buildRecommendationPrompt(data: {
 Analise esta recomendação e explique para um produtor rural. Use linguagem simples, direta e profissional, como um técnico de campo experiente conversando no curral. Máximo 6 frases.
 
 DADOS DO LOTE:
-- Nome: ${data.herdName}
-- Espécie: ${data.species}
-- Fase: ${data.phase}
+- Nome: ${sanitize(data.herdName)}
+- Espécie: ${sanitize(data.species)}
+- Fase: ${sanitize(data.phase)}
 - Cabeças: ${data.headCount}
-- Capim: ${data.forageName || 'Não informado'}
-- Raça: ${data.breedName || 'Não informada'}
+- Capim: ${sanitize(data.forageName || 'Não informado')}
+- Raça: ${sanitize(data.breedName || 'Não informada')}
 - Peso médio: ${data.avgWeight ? data.avgWeight + 'kg' : 'Não informado'}
 
 PRODUTO RECOMENDADO:
-- Nome: ${data.productName}
-- Linha: ${data.productLine}
+- Nome: ${sanitize(data.productName)}
+- Linha: ${sanitize(data.productLine)}
 - Consumo: ${data.consumptionKgDay.toFixed(1)} kg/cab/dia
 - Consumo mensal por cabeça: ${(data.consumptionKgDay * 30).toFixed(0)} kg
 
 DÉFICITS IDENTIFICADOS NA FORRAGEIRA:
-${data.deficits.length > 0 ? data.deficits.map(d => '- ' + d).join('\n') : '- Nenhum déficit crítico identificado'}
+${data.deficits.length > 0 ? data.deficits.map(d => '- ' + sanitize(d)).join('\n') : '- Nenhum déficit crítico identificado'}
 
 RAZÕES DA RECOMENDAÇÃO:
-${data.reasons.map(r => '- ' + r).join('\n')}
+${data.reasons.map(r => '- ' + sanitize(r)).join('\n')}
 
 REGRAS IMPORTANTES:
 1. Use português brasileiro com acentuação correta

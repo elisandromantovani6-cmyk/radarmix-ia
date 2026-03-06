@@ -9,9 +9,13 @@ export default function RankingPage() {
 
   useEffect(() => {
     const fetch_ = async () => {
-      const res = await fetch('/api/ranking')
-      const json = await res.json()
-      if (res.ok) setData(json)
+      try {
+        const res = await fetch('/api/ranking')
+        const json = await res.json()
+        if (res.ok) setData(json)
+      } catch {
+        // erro de rede silencioso
+      }
       setLoading(false)
     }
     fetch_()

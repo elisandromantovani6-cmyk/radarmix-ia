@@ -41,7 +41,8 @@ export default function HerdCard({ herd, allHerds }: { herd: any, allHerds: any[
             <span className="text-[11px] text-zinc-600 ml-1">cab.</span>
           </div>
           <button onClick={() => setShowActions(!showActions)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-zinc-800/50 text-zinc-600 transition-colors text-[14px]">⋮</button>
+            aria-expanded={showActions} aria-label="Ações do lote"
+            className="w-8 h-8 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-zinc-800/50 text-zinc-600 transition-colors text-[14px]">⋮</button>
         </div>
       </div>
 

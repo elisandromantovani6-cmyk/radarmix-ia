@@ -80,7 +80,7 @@ export default function RecommendationPanel({ herdId, herdName }: { herdId: stri
           </p>
           <button
             onClick={handleRecommend}
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-sm"
+            className="px-6 py-3 min-h-[44px] bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-sm"
           >
             Gerar Recomendação com IA
           </button>

@@ -96,19 +96,19 @@ export default function InventoryPanel({ farmId }: { farmId: string }) {
             className="input-field w-full px-3 py-2 text-[12px]" />
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-[9px] text-zinc-600 uppercase">Qtd (kg)</label>
+              <label className="text-[11px] text-zinc-600 uppercase">Qtd (kg)</label>
               <input type="number" placeholder="500" value={newItem.quantity_kg}
                 onChange={e => setNewItem({ ...newItem, quantity_kg: e.target.value })}
                 className="input-field w-full px-2 py-1.5 text-[12px]" />
             </div>
             <div>
-              <label className="text-[9px] text-zinc-600 uppercase">Consumo/dia (kg)</label>
+              <label className="text-[11px] text-zinc-600 uppercase">Consumo/dia (kg)</label>
               <input type="number" placeholder="27" value={newItem.daily_consumption_kg}
                 onChange={e => setNewItem({ ...newItem, daily_consumption_kg: e.target.value })}
                 className="input-field w-full px-2 py-1.5 text-[12px]" />
             </div>
             <div>
-              <label className="text-[9px] text-zinc-600 uppercase">Preço/kg (R$)</label>
+              <label className="text-[11px] text-zinc-600 uppercase">Preço/kg (R$)</label>
               <input type="number" placeholder="3.50" value={newItem.unit_price}
                 onChange={e => setNewItem({ ...newItem, unit_price: e.target.value })}
                 className="input-field w-full px-2 py-1.5 text-[12px]" />
@@ -138,7 +138,7 @@ export default function InventoryPanel({ farmId }: { farmId: string }) {
                 <span className="text-[14px]">{statusIcon[item.status] || '⚪'}</span>
                 <div className="min-w-0">
                   <p className="text-[12px] font-medium text-white truncate">{item.product_name}</p>
-                  <p className="text-[10px] text-zinc-600">
+                  <p className="text-[11px] text-zinc-600">
                     {item.quantity_kg}kg | {item.daily_consumption_kg}kg/dia
                     {item.unit_price && ` | R$${item.unit_price}/kg`}
                   </p>

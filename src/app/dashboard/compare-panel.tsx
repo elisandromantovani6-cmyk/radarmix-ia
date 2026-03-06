@@ -88,7 +88,7 @@ export default function ComparePanel({ herdId, herdName }: { herdId: string, her
 
         {/* Botão comparar */}
         <button onClick={compare} disabled={loading || selected.length < 2}
-          className={'w-full py-2.5 rounded-xl text-[13px] font-bold transition-all ' +
+          className={'w-full py-2.5 min-h-[44px] rounded-xl text-[13px] font-bold transition-all ' +
             (selected.length >= 2
               ? 'btn-primary'
               : 'bg-zinc-800 text-zinc-600 cursor-not-allowed')}>
