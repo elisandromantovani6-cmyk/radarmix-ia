@@ -1,50 +1,76 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F0F12"/>
+      <stop offset="100%" style="stop-color:#050506"/>
+    </linearGradient>
     <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#FF8C00"/>
       <stop offset="50%" style="stop-color:#F97316"/>
       <stop offset="100%" style="stop-color:#EA580C"/>
     </linearGradient>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0C0C0F"/>
-      <stop offset="100%" style="stop-color:#050506"/>
-    </linearGradient>
     <linearGradient id="shineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:white;stop-opacity:0.08"/>
-      <stop offset="50%" style="stop-color:white;stop-opacity:0"/>
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.05"/>
+      <stop offset="40%" style="stop-color:white;stop-opacity:0"/>
     </linearGradient>
-    <radialGradient id="glowOrange" cx="50%" cy="55%" r="40%">
-      <stop offset="0%" style="stop-color:#F97316;stop-opacity:0.15"/>
+    <radialGradient id="glowCenter" cx="50%" cy="40%" r="38%">
+      <stop offset="0%" style="stop-color:#F97316;stop-opacity:0.08"/>
       <stop offset="100%" style="stop-color:#F97316;stop-opacity:0"/>
     </radialGradient>
-    <filter id="textGlow">
-      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#F97316" flood-opacity="0.5"/>
-    </filter>
   </defs>
 
-  <!-- Fundo com cantos arredondados estilo iOS -->
+  <!-- Fundo -->
   <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
-  <rect x="1" y="1" width="510" height="510" rx="111" fill="none" stroke="white" stroke-opacity="0.06" stroke-width="1.5"/>
-  <rect width="512" height="512" rx="112" fill="url(#glowOrange)"/>
-  <rect width="512" height="280" rx="112" fill="url(#shineGrad)"/>
+  <rect x="1" y="1" width="510" height="510" rx="111" fill="none" stroke="white" stroke-opacity="0.04" stroke-width="1"/>
+  <rect width="512" height="512" rx="112" fill="url(#glowCenter)"/>
+  <rect width="512" height="260" rx="112" fill="url(#shineGrad)"/>
 
-  <!-- Ondas decorativas -->
-  <path d="M 80 200 Q 180 140 256 180 Q 340 220 432 160" fill="none" stroke="url(#orangeGrad)" stroke-width="3" stroke-opacity="0.2" stroke-linecap="round"/>
-  <path d="M 80 220 Q 180 160 256 200 Q 340 240 432 180" fill="none" stroke="url(#orangeGrad)" stroke-width="2" stroke-opacity="0.1" stroke-linecap="round"/>
-
-  <!-- R principal -->
-  <g filter="url(#textGlow)">
-    <text x="180" y="340" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" font-size="260" font-weight="900" fill="white" letter-spacing="-8">R</text>
+  <!-- Ondas de radar sutis -->
+  <g stroke="url(#orangeGrad)" fill="none" stroke-linecap="round">
+    <path d="M90,105 A200,200 0 0,1 422,105" stroke-width="1.8" opacity="0.08"/>
+    <path d="M120,130 A160,160 0 0,1 392,130" stroke-width="1.5" opacity="0.12"/>
+    <path d="M150,152 A120,120 0 0,1 362,152" stroke-width="1.2" opacity="0.06"/>
   </g>
 
-  <!-- Ponto laranja -->
-  <circle cx="355" cy="155" r="28" fill="url(#orangeGrad)" opacity="0.95"/>
-  <circle cx="355" cy="155" r="12" fill="#050506" opacity="0.6"/>
+  <!-- Cabeca de boi - vista frontal, estilo emblema -->
+  <g transform="translate(256, 225)">
+
+    <!-- Chifres laranja - curva elegante em lira, mais grossos e imponentes -->
+    <path d="M-35,-30 C-52,-55 -85,-90 -115,-108 C-122,-112 -128,-106 -120,-98 C-108,-82 -75,-55 -55,-38"
+          stroke="url(#orangeGrad)" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M35,-30 C52,-55 85,-90 115,-108 C122,-112 128,-106 120,-98 C108,-82 75,-55 55,-38"
+          stroke="url(#orangeGrad)" stroke-width="10" fill="none" stroke-linecap="round"/>
+
+    <!-- Forma principal da cabeca -->
+    <path d="M0,-42 C38,-42 60,-22 60,12 C60,48 40,75 24,86 C14,93 -14,93 -24,86 C-40,75 -60,48 -60,12 C-60,-22 -38,-42 0,-42Z" fill="white" opacity="0.95"/>
+
+    <!-- Orelhas caidas (zebu) -->
+    <path d="M-54,-8 C-74,-5 -96,5 -102,18 C-105,24 -98,26 -92,22 C-80,12 -64,2 -52,0Z" fill="white" opacity="0.82"/>
+    <path d="M54,-8 C74,-5 96,5 102,18 C105,24 98,26 92,22 C80,12 64,2 52,0Z" fill="white" opacity="0.82"/>
+
+    <!-- Olhos - mais elegantes -->
+    <ellipse cx="-22" cy="10" rx="5.5" ry="6.5" fill="#0C0C0F" opacity="0.75"/>
+    <circle cx="-20" cy="8" r="1.8" fill="white" opacity="0.35"/>
+    <ellipse cx="22" cy="10" rx="5.5" ry="6.5" fill="#0C0C0F" opacity="0.75"/>
+    <circle cx="24" cy="8" r="1.8" fill="white" opacity="0.35"/>
+
+    <!-- Marca frontal (losango sutil na testa - identidade) -->
+    <path d="M0,-20 L6,-10 L0,0 L-6,-10Z" fill="#F97316" opacity="0.25"/>
+
+    <!-- Focinho -->
+    <ellipse cx="0" cy="55" rx="28" ry="20" fill="white" opacity="0.06"/>
+    <ellipse cx="-11" cy="54" rx="6.5" ry="4.5" fill="#0C0C0F" opacity="0.25"/>
+    <ellipse cx="11" cy="54" rx="6.5" ry="4.5" fill="#0C0C0F" opacity="0.25"/>
+    <line x1="0" y1="40" x2="0" y2="50" stroke="#0C0C0F" stroke-width="1.5" opacity="0.12" stroke-linecap="round"/>
+
+    <!-- Barbela -->
+    <path d="M-6,86 C-4,102 0,108 4,102 C6,94 6,86 6,86" fill="white" opacity="0.5"/>
+  </g>
 
   <!-- Badge IA -->
-  <rect x="320" y="340" width="100" height="48" rx="24" fill="url(#orangeGrad)"/>
-  <text x="370" y="372" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" font-size="28" font-weight="800" fill="white" letter-spacing="2">IA</text>
+  <rect x="338" y="404" width="86" height="40" rx="20" fill="url(#orangeGrad)"/>
+  <text x="381" y="431" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" font-size="22" font-weight="800" fill="white" letter-spacing="2">IA</text>
 
-  <!-- Linha inferior -->
-  <rect x="140" y="400" width="232" height="3" rx="1.5" fill="url(#orangeGrad)" opacity="0.4"/>
+  <!-- Texto RADARMIX -->
+  <text x="216" y="430" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', Arial, sans-serif" font-size="22" font-weight="700" fill="white" opacity="0.35" letter-spacing="5">RADARMIX</text>
 </svg>
