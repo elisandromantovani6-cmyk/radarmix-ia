@@ -635,6 +635,101 @@ const FEATURES = [
       { id: "32f", text: "Modelo de receita: taxas, float, cr\u00e9dito" },
     ],
   },
+  // ========== FASE 7 — RADAR GLOBAL DA PECUÁRIA ==========
+  {
+    id: 32,
+    icon: "\uD83C\uDF10",
+    title: "Radar de Pre\u00e7os Reais de Insumos por Regi\u00e3o",
+    difficulty: "medium",
+    phase: 7,
+    weeks: "2-6",
+    description: "Rede de intelig\u00eancia coletiva: agrega pre\u00e7os reais pagos por produtores e mostra m\u00e9dia regional. Economia imediata.",
+    agent: "Agente Radar Global",
+    tasks: [
+      { id: "33a", text: "Criar tabela 'precos_insumos' com pre\u00e7o, produto, regi\u00e3o, data (anonimizado)" },
+      { id: "33b", text: "Coletar pre\u00e7os pagos pelos produtores (input no app ou via NF)" },
+      { id: "33c", text: "Calcular m\u00e9dia regional por insumo (farelo, milho, mineral, etc.)" },
+      { id: "33d", text: "Tela: 'Seu pre\u00e7o vs m\u00e9dia regional' com % acima/abaixo" },
+      { id: "33e", text: "Alerta: 'Voc\u00ea est\u00e1 pagando 10% acima da regi\u00e3o em farelo de soja'" },
+      { id: "33f", text: "Hist\u00f3rico de pre\u00e7os por regi\u00e3o (30, 90, 365 dias)" },
+      { id: "33g", text: "M\u00ednimo 50 produtores/regi\u00e3o para dados confi\u00e1veis" },
+    ],
+  },
+  {
+    id: 33,
+    icon: "\uD83D\uDCCA",
+    title: "Benchmark de Desempenho — Seu Lote vs Regi\u00e3o",
+    difficulty: "medium",
+    phase: 7,
+    weeks: "3-6",
+    description: "Compara GMD, custo/@, efici\u00eancia alimentar e mortalidade do produtor com centenas de lotes similares.",
+    agent: "Agente Benchmark",
+    tasks: [
+      { id: "34a", text: "Agregar dados anonimizados: GMD, custo/@, mortalidade, efici\u00eancia" },
+      { id: "34b", text: "Segmentar por perfil: ra\u00e7a, regi\u00e3o, sistema (pasto/confin.), fase" },
+      { id: "34c", text: "Tela comparativa: 'Seu GMD: 1,28 | M\u00e9dia: 1,41 | Top 10%: 1,57'" },
+      { id: "34d", text: "IA aponta diferen\u00e7as: dieta, gen\u00e9tica, manejo, pastagem" },
+      { id: "34e", text: "Badge de posi\u00e7\u00e3o: 'Voc\u00ea est\u00e1 no TOP 22% em efici\u00eancia alimentar'" },
+      { id: "34f", text: "Relat\u00f3rio mensal de benchmark autom\u00e1tico" },
+      { id: "34g", text: "Gamifica\u00e7\u00e3o: ranking regional + conquistas" },
+    ],
+  },
+  {
+    id: 34,
+    icon: "\uD83D\uDD2E",
+    title: "Previs\u00e3o de Pre\u00e7o da Arroba por Regi\u00e3o",
+    difficulty: "hard",
+    phase: 7,
+    weeks: "6-10",
+    description: "IA prev\u00ea tend\u00eancia de pre\u00e7o da @ usando dados da B3, abates, clima, custo alimentar e volume de confinamento.",
+    agent: "Agente Previs\u00e3o Mercado",
+    tasks: [
+      { id: "35a", text: "Integrar dados B3, CEPEA, abates (IBGE/SIF) e exporta\u00e7\u00e3o" },
+      { id: "35b", text: "Modelo preditivo: sazonalidade + oferta + d\u00f3lar + clima \u2192 pre\u00e7o" },
+      { id: "35c", text: "Tela: 'Probabilidade de alta da @ nos pr\u00f3ximos 60 dias: 71%'" },
+      { id: "35d", text: "Janela ideal de venda com simula\u00e7\u00e3o de lucro" },
+      { id: "35e", text: "Alertas push: 'Pre\u00e7o atingiu ponto \u00f3timo de venda'" },
+      { id: "35f", text: "Hist\u00f3rico de acerto das previs\u00f5es (backtesting)" },
+    ],
+  },
+  {
+    id: 35,
+    icon: "\uD83D\uDDFA\uFE0F",
+    title: "Mapa Nacional de Efici\u00eancia Pecu\u00e1ria",
+    difficulty: "hard",
+    phase: 7,
+    weeks: "8-14",
+    description: "Mapa interativo do Brasil com custo/@, GMD m\u00e9dio, mortalidade e efici\u00eancia por regi\u00e3o. Maior banco de dados pecu\u00e1rio do pa\u00eds.",
+    agent: "Agente Mapa Nacional",
+    tasks: [
+      { id: "36a", text: "Mapa interativo (Mapbox/Google Maps) com dados agregados por munic\u00edpio" },
+      { id: "36b", text: "Heatmap: custo por arroba por regi\u00e3o" },
+      { id: "36c", text: "Indicadores por regi\u00e3o: GMD m\u00e9dio, mortalidade, efici\u00eancia alimentar" },
+      { id: "36d", text: "Filtros: esp\u00e9cie, ra\u00e7a, sistema produtivo, per\u00edodo" },
+      { id: "36e", text: "Compara\u00e7\u00e3o: 'Sua fazenda vs sua regi\u00e3o vs estado vs Brasil'" },
+      { id: "36f", text: "Dados anonimizados com m\u00ednimo de produ\u00e7\u00e3o por c\u00e9lula" },
+      { id: "36g", text: "API de dados agregados para parceiros (frigorf\u00edcos, bancos, seguradoras)" },
+    ],
+  },
+  {
+    id: 36,
+    icon: "\uD83D\uDCB0",
+    title: "Monetiza\u00e7\u00e3o da Rede — Dados & Intelig\u00eancia",
+    difficulty: "hard",
+    phase: 7,
+    weeks: "12-20",
+    description: "4 fluxos de receita: assinatura produtor, intelig\u00eancia para empresas (JBS, Cargill), dados agregados e fintech agro.",
+    agent: "Agente Monetiza\u00e7\u00e3o",
+    tasks: [
+      { id: "37a", text: "Plano Pro para produtores: R$149/m\u00eas com Radar Global completo" },
+      { id: "37b", text: "Painel de intelig\u00eancia de mercado para empresas (B2B)" },
+      { id: "37c", text: "Relat\u00f3rio mensal pecu\u00e1rio para clientes corporativos (JBS, Marfrig, Cargill)" },
+      { id: "37d", text: "API de dados agregados anonimizados para parceiros" },
+      { id: "37e", text: "Dashboard de tend\u00eancias nutricionais e demanda de insumos" },
+      { id: "37f", text: "Integrar cr\u00e9dito + seguro + hedge baseado nos dados da rede" },
+      { id: "37g", text: "Meta: 30.000 produtores ativos para massa cr\u00edtica" },
+    ],
+  },
 ];
 
 const DIFFICULTY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; time: string }> = {
@@ -650,6 +745,7 @@ const PHASE_CONFIG: Record<number, { label: string; color: string; bg: string }>
   4: { label: "FASE 4 \u2014 Domin\u00e2ncia", color: "#DC2626", bg: "#FEF2F2" },
   5: { label: "FASE 5 \u2014 IA Avan\u00e7ada", color: "#0891B2", bg: "#ECFEFF" },
   6: { label: "FASE 6 \u2014 Fintech Agro", color: "#CA8A04", bg: "#FEFCE8" },
+  7: { label: "FASE 7 \u2014 Radar Global", color: "#E11D48", bg: "#FFF1F2" },
 };
 
 export default function RadarmixChecklist() {
@@ -691,7 +787,7 @@ export default function RadarmixChecklist() {
             <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{"\u{1F402}"}</div>
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: "-0.03em", color: "#F9FAFB" }}>RADARMIX IA</h1>
-              <p style={{ fontSize: 11, margin: 0, color: "#6EE7B7", letterSpacing: "0.08em", fontFamily: "'JetBrains Mono', monospace" }}>CHECKLIST DE DESENVOLVIMENTO &bull; v3.1 &bull; 33 FEATURES &bull; 6 FASES</p>
+              <p style={{ fontSize: 11, margin: 0, color: "#6EE7B7", letterSpacing: "0.08em", fontFamily: "'JetBrains Mono', monospace" }}>CHECKLIST DE DESENVOLVIMENTO &bull; v3.2 &bull; 38 FEATURES &bull; 7 FASES</p>
             </div>
           </div>
 
@@ -708,7 +804,7 @@ export default function RadarmixChecklist() {
 
           {/* Phase stats */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {[1, 2, 3, 4, 5, 6].map((phase) => {
+            {[1, 2, 3, 4, 5, 6, 7].map((phase) => {
               const phaseFeatures = FEATURES.filter((f) => f.phase === phase);
               const phaseTasks = phaseFeatures.reduce((a, f) => a + f.tasks.length, 0);
               const phaseDone = phaseFeatures.reduce((a, f) => a + f.tasks.filter((t) => checked[t.id]).length, 0);
@@ -728,13 +824,14 @@ export default function RadarmixChecklist() {
       <div style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)", position: "sticky", top: 0, zIndex: 10, backdropFilter: "blur(12px)" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", padding: "8px 20px", display: "flex", gap: 4, overflowX: "auto" }}>
           {[
-            { val: 0, label: "Todas (33)" },
+            { val: 0, label: "Todas (38)" },
             { val: 1, label: "Fase 1 \u2022 MVP" },
             { val: 2, label: "Fase 2 \u2022 Expans\u00e3o" },
             { val: 3, label: "Fase 3 \u2022 Plataforma" },
             { val: 4, label: "Fase 4 \u2022 Domin\u00e2ncia" },
             { val: 5, label: "Fase 5 \u2022 IA Avan\u00e7ada" },
             { val: 6, label: "Fase 6 \u2022 Fintech" },
+            { val: 7, label: "Fase 7 \u2022 Radar Global" },
           ].map((f) => (
             <button
               key={f.val}
