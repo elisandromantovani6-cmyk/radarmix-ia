@@ -1,6 +1,23 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Taxa de mortalidade padrão por fase (%) - Embrapa / IMEA-MT / Assocon
+const DEFAULT_MORTALITY: Record<string, number> = {
+  cria: 5.0,
+  recria: 2.0,
+  engorda: 1.5,
+  engorda_confinamento: 2.0,
+  lactacao: 2.0,
+  reproducao: 1.5,
+}
+
+// Impostos na venda de gado - MT
+const TAXES = {
+  funrural: 0.015,
+  senar: 0.002,
+  fethab_per_head: 14.46,
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
@@ -111,10 +128,25 @@ export async function GET(request: NextRequest) {
     const currentArroba = (currentWeight * carcassYield) / 15
     const projectedRevenue = currentArroba * arrobaPrice
 
+    // Impostos por cabeça
+    const taxFunrural = projectedRevenue * TAXES.funrural
+    const taxSenar = projectedRevenue * TAXES.senar
+    const taxFethab = TAXES.fethab_per_head
+    const totalTaxesPerHead = taxFunrural + taxSenar + taxFethab
+    const netRevenue = projectedRevenue - totalTaxesPerHead
+
+    // Mortalidade
+    const mortalityRate = DEFAULT_MORTALITY[herd.main_phase] ?? 2.0
+    const mortalityFraction = mortalityRate / 100
+    const effectiveHeads = Math.round((herd.head_count || 1) * (1 - mortalityFraction))
+    const deadHeads = (herd.head_count || 1) - effectiveHeads
+    const avgInvestmentPerDead = animalCost + (dailyTotal * daysInLot / 2)
+    const mortalityLoss = deadHeads * avgInvestmentPerDead
+
     // DRE
     const totalInvestment = animalCost + totalOperational
-    const grossProfit = projectedRevenue - totalInvestment
-    const grossMargin = projectedRevenue > 0 ? (grossProfit / projectedRevenue) * 100 : 0
+    const grossProfit = netRevenue - totalInvestment
+    const grossMargin = netRevenue > 0 ? (grossProfit / netRevenue) * 100 : 0
     const roi = totalInvestment > 0 ? (grossProfit / totalInvestment) * 100 : 0
 
     // Cenários de preço
@@ -122,12 +154,18 @@ export async function GET(request: NextRequest) {
       { price: arrobaPrice - 30, label: 'Pessimista' },
       { price: arrobaPrice, label: 'Atual' },
       { price: arrobaPrice + 30, label: 'Otimista' },
-    ].map(s => ({
-      ...s,
-      revenue: currentArroba * s.price,
-      profit: (currentArroba * s.price) - totalInvestment,
-      margin: ((currentArroba * s.price) - totalInvestment) / (currentArroba * s.price) * 100,
-    }))
+    ].map(s => {
+      const rev = currentArroba * s.price
+      const taxTotal = rev * TAXES.funrural + rev * TAXES.senar + TAXES.fethab_per_head
+      const net = rev - taxTotal
+      return {
+        ...s,
+        revenue: rev,
+        net_revenue: net,
+        profit: net - totalInvestment,
+        margin: (net - totalInvestment) / net * 100,
+      }
+    })
 
     // Evolução de peso
     const weightHistory = (weighings || []).map((w: any) => ({
@@ -176,13 +214,28 @@ export async function GET(request: NextRequest) {
       revenue: {
         arroba_price: arrobaPrice,
         projected: Math.round(projectedRevenue * 100) / 100,
-        per_lot: Math.round(projectedRevenue * herd.head_count * 100) / 100,
+        gross_revenue: Math.round(projectedRevenue * 100) / 100,
+        net_revenue: Math.round(netRevenue * 100) / 100,
+        per_lot: Math.round(netRevenue * effectiveHeads * 100) / 100,
+      },
+      taxes: {
+        funrural: Math.round(taxFunrural * 100) / 100,
+        senar: Math.round(taxSenar * 100) / 100,
+        fethab: taxFethab,
+        total_per_head: Math.round(totalTaxesPerHead * 100) / 100,
+        total_lot: Math.round(totalTaxesPerHead * effectiveHeads * 100) / 100,
+      },
+      mortality: {
+        rate: mortalityRate,
+        effective_heads: effectiveHeads,
+        dead_heads: deadHeads,
+        loss: Math.round(mortalityLoss * 100) / 100,
       },
       result: {
         gross_profit: Math.round(grossProfit * 100) / 100,
         gross_margin: Math.round(grossMargin * 10) / 10,
         roi: Math.round(roi * 10) / 10,
-        profit_per_lot: Math.round(grossProfit * herd.head_count * 100) / 100,
+        profit_per_lot: Math.round(grossProfit * effectiveHeads * 100) / 100,
       },
       scenarios,
     })

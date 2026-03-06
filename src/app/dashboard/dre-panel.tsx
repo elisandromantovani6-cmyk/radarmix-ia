@@ -60,6 +60,9 @@ export default function DREPanel({ herdId, herdName }: { herdId: string, herdNam
                 <h4 className="text-lg font-extrabold text-white">{data.herd.name}</h4>
                 <p className="text-xs text-gray-500">
                   {data.herd.head_count} cab. {data.herd.breed || ''} | {data.herd.phase} | {data.period.months} meses
+                  {data.mortality && (
+                    <span className="ml-2 text-yellow-400">| Efetivas: {data.mortality.effective_heads} cab.</span>
+                  )}
                 </p>
               </div>
               <button onClick={openPDF}
@@ -74,9 +77,29 @@ export default function DREPanel({ herdId, herdName }: { herdId: string, herdNam
             <p className="text-xs text-gray-400 font-semibold uppercase mb-3">DRE por cabeça</p>
             <div className="space-y-2">
               <div className="flex justify-between text-sm text-gray-300">
-                <span>(+) Receita ({fmtNum(data.weight.arroba_current)}@ × {fmt(data.revenue.arroba_price)})</span>
-                <span className="text-green-400 font-bold">{fmt(data.revenue.projected)}</span>
+                <span>(+) Receita bruta ({fmtNum(data.weight.arroba_current)}@ × {fmt(data.revenue.arroba_price)})</span>
+                <span className="text-green-400 font-bold">{fmt(data.revenue.gross_revenue || data.revenue.projected)}</span>
               </div>
+              {data.taxes && (
+                <>
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>(-) FUNRURAL (1,5%)</span>
+                    <span className="text-red-400">{fmt(data.taxes.funrural)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>(-) SENAR (0,2%)</span>
+                    <span className="text-red-400">{fmt(data.taxes.senar)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>(-) FETHAB</span>
+                    <span className="text-red-400">{fmt(data.taxes.fethab)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold text-gray-300">
+                    <span>(=) Receita liquida</span>
+                    <span className="text-green-400">{fmt(data.revenue.net_revenue || data.revenue.projected)}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between text-sm text-gray-400">
                 <span>(-) Custo animal</span>
                 <span className="text-red-400">{fmt(data.costs.animal)}</span>
@@ -97,6 +120,12 @@ export default function DREPanel({ herdId, herdName }: { herdId: string, herdNam
                 </span>
                 <span className="text-red-400">{fmt(data.costs.total_operational)}</span>
               </div>
+              {data.mortality && data.mortality.loss > 0 && (
+                <div className="flex justify-between text-sm text-gray-400">
+                  <span>(-) Mortalidade ({fmtNum(data.mortality.rate)}%: {data.mortality.dead_heads} cab.)</span>
+                  <span className="text-red-400">{fmt(data.mortality.loss)}</span>
+                </div>
+              )}
               <div className="border-t border-gray-700 my-1"></div>
               <div className="flex justify-between text-sm font-bold">
                 <span className="text-gray-200">= Lucro bruto</span>

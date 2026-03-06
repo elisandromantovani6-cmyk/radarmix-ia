@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { simulateSchema } from '@/lib/schemas'
 import { NextRequest, NextResponse } from 'next/server'
 
 const ARROBA_PRICES = {
@@ -46,6 +47,23 @@ const DEFAULT_COSTS: Record<string, {
   reproducao: { pasto: 2.00, mao_obra: 1.50, sanidade: 0.70, outros: 0.80 },
 }
 
+// Taxa de mortalidade padrão por fase (%) - Embrapa / IMEA-MT / Assocon
+const DEFAULT_MORTALITY: Record<string, number> = {
+  cria: 5.0,        // 4-8% bezerros (Embrapa)
+  recria: 2.0,      // 1-3% (IMEA-MT)
+  engorda: 1.5,     // 1-2% (IMEA-MT)
+  engorda_confinamento: 2.0, // 1-3% (Assocon)
+  lactacao: 2.0,    // vacas leiteiras
+  reproducao: 1.5,  // matrizes/touros
+}
+
+// Impostos na venda de gado - MT
+const TAXES = {
+  funrural: 0.015,     // 1,5% sobre receita bruta
+  senar: 0.002,        // 0,2% sobre receita bruta
+  fethab_per_head: 14.46, // FETHAB-MT por cabeça transportada
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
@@ -55,9 +73,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
+    const body = await request.json()
+    const parsed = simulateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
     const {
       herd_id, custom_arroba_price, custom_costs, custom_animal_price, cycle_months,
-    } = await request.json()
+    } = parsed.data
 
     const { data: herd } = await supabase
       .from('herds')
@@ -131,7 +157,17 @@ export async function POST(request: NextRequest) {
     const finalArroba = (finalWeight * carcassYield) / 15
     const saleRevenue = finalArroba * arrobaPrice
 
-    const totalProfit = saleRevenue - totalInvestment
+    // Impostos por cabeça
+    const taxFunrural = saleRevenue * TAXES.funrural
+    const taxSenar = saleRevenue * TAXES.senar
+    const taxFethab = TAXES.fethab_per_head // por cabeça
+    const totalTaxesPerHead = taxFunrural + taxSenar + taxFethab
+
+    // Receita líquida (após impostos)
+    const netRevenue = saleRevenue - totalTaxesPerHead
+
+    // Lucro por cabeça (receita líquida - investimento)
+    const totalProfit = netRevenue - totalInvestment
     const totalROI = totalInvestment > 0 ? (totalProfit / totalInvestment) * 100 : 0
     const profitPerMonth = totalProfit / months
     const costPerArrobaProduced = totalInvestment / finalArroba
@@ -149,8 +185,23 @@ export async function POST(request: NextRequest) {
     else if (totalROI >= 5) { healthLevel = 'moderate'; healthLabel = 'Moderado'; healthColor = 'yellow' }
     else if (totalROI >= 0) { healthLevel = 'low'; healthLabel = 'Baixo - considere alternativas'; healthColor = 'yellow' }
 
-    const totalLotProfit = totalProfit * herd.head_count
-    const totalLotInvestment = totalInvestment * herd.head_count
+    // Taxa de mortalidade
+    const mortalityRate = parsed.data.mortality_rate ?? DEFAULT_MORTALITY[costKey] ?? 2.0
+    const mortalityFraction = mortalityRate / 100
+
+    // Cabeças efetivas (sobrevivem ao ciclo)
+    const effectiveHeads = Math.round(herd.head_count * (1 - mortalityFraction))
+    const deadHeads = herd.head_count - effectiveHeads
+
+    // Custo perdido nos animais mortos (investimento até metade do ciclo em média)
+    const avgInvestmentPerDead = animalPrice + (monthlyOperationalCost * (months / 2))
+    const mortalityLoss = deadHeads * avgInvestmentPerDead
+
+    // Recalcular lucro do lote considerando mortalidade
+    const totalLotRevenue = netRevenue * effectiveHeads
+    const totalLotCost = totalInvestment * herd.head_count // custo foi em todos, inclusive os que morreram
+    const totalLotProfit = totalLotRevenue - totalLotCost
+    const totalLotInvestment = totalLotCost
 
     // Projeção de abate
     let daysToTarget = null
@@ -204,6 +255,19 @@ export async function POST(request: NextRequest) {
       annualized_roi: annualizedROI, selic_rate: selicRate,
       health_level: healthLevel, health_label: healthLabel, health_color: healthColor,
       total_lot_investment: totalLotInvestment, total_lot_profit: totalLotProfit,
+      mortality_rate: mortalityRate,
+      effective_heads: effectiveHeads,
+      dead_heads: deadHeads,
+      mortality_loss: mortalityLoss,
+      taxes: {
+        funrural: taxFunrural,
+        senar: taxSenar,
+        fethab: taxFethab,
+        total_per_head: totalTaxesPerHead,
+        total_lot: totalTaxesPerHead * effectiveHeads,
+      },
+      gross_revenue: saleRevenue,
+      net_revenue: netRevenue,
       days_to_target: daysToTarget, projected_weight: projectedWeight,
     })
   } catch (err: any) {

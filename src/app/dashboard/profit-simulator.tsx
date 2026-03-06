@@ -206,6 +206,48 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
             )}
           </div>
 
+          {/* MORTALIDADE E IMPOSTOS */}
+          <div className="bg-gray-800/50 rounded-xl p-4">
+            <p className="text-xs text-gray-400 font-semibold uppercase mb-3">Mortalidade e Impostos</p>
+            <div className="space-y-2">
+              {result.mortality_rate != null && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Mortalidade estimada</span>
+                    <span className="text-yellow-400 font-bold">{fmtNum(result.mortality_rate, 1)}% ({result.dead_heads} cab.)</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Cabecas efetivas</span>
+                    <span className="text-white font-bold">{result.effective_heads} de {result.head_count}</span>
+                  </div>
+                  {result.mortality_loss > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Perda por mortalidade</span>
+                      <span className="text-red-400">{fmt(result.mortality_loss)}</span>
+                    </div>
+                  )}
+                </>
+              )}
+              {result.taxes && (
+                <>
+                  <div className="border-t border-gray-700 my-1"></div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Receita bruta</span>
+                    <span className="text-green-400">{fmt(result.gross_revenue)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Impostos (FUNRURAL + SENAR + FETHAB)</span>
+                    <span className="text-red-400">{fmt(result.taxes.total_per_head)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold">
+                    <span className="text-gray-300">Receita liquida</span>
+                    <span className="text-green-400">{fmt(result.net_revenue)}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* LUCRO DO LOTE */}
           <div className="bg-gray-800/50 rounded-xl p-4">
             <div className="flex items-center justify-between">
@@ -220,7 +262,9 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
                 <p className="text-sm text-gray-300">{fmt(result.total_lot_investment)}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 mt-1">{result.head_count} cab. × {fmt(result.total_profit)} em {result.cycle_months} meses</p>
+            <p className="text-xs text-gray-600 mt-1">
+              {result.effective_heads || result.head_count} cab. efetivas × {fmt(result.total_profit)} em {result.cycle_months} meses
+            </p>
           </div>
 
           {/* FLUXO DO CICLO */}
@@ -246,8 +290,18 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
                 <span className="text-white">{fmtNum(result.final_arroba)} @</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Venda (@ {fmt(result.arroba_price)})</span>
-                <span className="text-green-400 font-bold">{fmt(result.sale_revenue)}</span>
+                <span className="text-gray-400">Venda bruta (@ {fmt(result.arroba_price)})</span>
+                <span className="text-green-400">{fmt(result.gross_revenue || result.sale_revenue)}</span>
+              </div>
+              {result.taxes && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">(-) Impostos</span>
+                  <span className="text-red-400">{fmt(result.taxes.total_per_head)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Receita liquida</span>
+                <span className="text-green-400 font-bold">{fmt(result.net_revenue || result.sale_revenue)}</span>
               </div>
               <div className="border-t border-gray-700 my-1"></div>
               <div className="flex justify-between text-sm font-bold">

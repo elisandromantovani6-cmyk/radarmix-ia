@@ -1,6 +1,23 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Taxa de mortalidade padrão por fase (%) - Embrapa / IMEA-MT / Assocon
+const DEFAULT_MORTALITY: Record<string, number> = {
+  cria: 5.0,
+  recria: 2.0,
+  engorda: 1.5,
+  engorda_confinamento: 2.0,
+  lactacao: 2.0,
+  reproducao: 1.5,
+}
+
+// Impostos na venda de gado - MT
+const TAXES = {
+  funrural: 0.015,
+  senar: 0.002,
+  fethab_per_head: 14.46,
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
@@ -93,8 +110,23 @@ export async function GET(request: NextRequest) {
     const currentWeight = herd.avg_weight_kg || 350
     const currentArroba = (currentWeight * 0.52) / 15
     const projectedRevenue = currentArroba * arrobaPrice
+    // Impostos por cabeça
+    const taxFunrural = projectedRevenue * TAXES.funrural
+    const taxSenar = projectedRevenue * TAXES.senar
+    const taxFethab = TAXES.fethab_per_head
+    const totalTaxesPerHead = taxFunrural + taxSenar + taxFethab
+    const netRevenue = projectedRevenue - totalTaxesPerHead
+
+    // Mortalidade
+    const mortalityRate = DEFAULT_MORTALITY[herd.main_phase] ?? 2.0
+    const mortalityFraction = mortalityRate / 100
+    const effectiveHeads = Math.round((herd.head_count || 1) * (1 - mortalityFraction))
+    const deadHeads = (herd.head_count || 1) - effectiveHeads
+    const avgInvestmentPerDead = animalCost + (dailyTotal * daysInLot / 2)
+    const mortalityLoss = deadHeads * avgInvestmentPerDead
+
     const totalInvestment = animalCost + totalOperational
-    const grossProfit = projectedRevenue - totalInvestment
+    const grossProfit = netRevenue - totalInvestment
     const roi = totalInvestment > 0 ? (grossProfit / totalInvestment) * 100 : 0
 
     // Gerar HTML do relatório
@@ -110,9 +142,18 @@ export async function GET(request: NextRequest) {
       currentWeight,
       currentArroba,
       projectedRevenue,
+      netRevenue,
       totalInvestment,
       grossProfit,
       roi,
+      taxFunrural,
+      taxSenar,
+      taxFethab,
+      totalTaxesPerHead,
+      mortalityRate,
+      effectiveHeads,
+      deadHeads,
+      mortalityLoss,
       weighings: weighings || [],
       date: now.toLocaleDateString('pt-BR'),
       costSource,
@@ -200,6 +241,7 @@ function generateReportHTML(data: any): string {
     <table>
       <tr><td>Lote</td><td class="right bold">${data.herd.name}</td></tr>
       <tr><td>Cabeças</td><td class="right bold">${data.herd.head_count}</td></tr>
+      <tr><td>Cabeças efetivas (mortalidade ${fmtNum(data.mortalityRate)}%)</td><td class="right bold">${data.effectiveHeads} de ${data.herd.head_count}</td></tr>
       <tr><td>Raça</td><td class="right">${data.herd.breed?.name || '-'}</td></tr>
       <tr><td>Fase</td><td class="right">${data.herd.main_phase}</td></tr>
       <tr><td>Capim</td><td class="right">${data.herd.forage?.name || '-'}</td></tr>
@@ -214,17 +256,22 @@ function generateReportHTML(data: any): string {
     <div class="result-value">${fmt(data.grossProfit)}</div>
     <div class="result-label">ROI: ${fmtNum(data.roi)}% | Margem: ${fmtNum(data.projectedRevenue > 0 ? (data.grossProfit / data.projectedRevenue) * 100 : 0)}%</div>
     <div class="result-label" style="margin-top:10px; font-size:16px; font-weight:700; color:${profitColor}">
-      Lucro total do lote: ${fmt(data.grossProfit * data.herd.head_count)}
+      Lucro total do lote (${data.effectiveHeads} cab. efetivas): ${fmt(data.grossProfit * data.effectiveHeads)}
     </div>
   </div>
 
   <div class="section">
     <h3>DRE - Demonstrativo de Resultado por Cabeça</h3>
     <table>
-      <tr><td class="bold">(+) Receita projetada (${fmtNum(data.currentArroba)}@ × ${fmt(data.arrobaPrice)})</td><td class="right bold green">${fmt(data.projectedRevenue)}</td></tr>
+      <tr><td class="bold">(+) Receita bruta (${fmtNum(data.currentArroba)}@ × ${fmt(data.arrobaPrice)})</td><td class="right bold green">${fmt(data.projectedRevenue)}</td></tr>
+      <tr><td>(-) FUNRURAL (1,5%)</td><td class="right red">${fmt(data.taxFunrural)}</td></tr>
+      <tr><td>(-) SENAR (0,2%)</td><td class="right red">${fmt(data.taxSenar)}</td></tr>
+      <tr><td>(-) FETHAB</td><td class="right red">${fmt(data.taxFethab)}</td></tr>
+      <tr><td class="bold">(=) Receita líquida</td><td class="right bold green">${fmt(data.netRevenue)}</td></tr>
       <tr><td>(-) Custo do animal</td><td class="right red">${fmt(data.animalCost)}</td></tr>
       <tr><td>(-) Custo operacional (${data.daysInLot} dias)</td><td class="right red">${fmt(data.totalOperational)}</td></tr>
-      <tr style="border-top:2px solid #1a1a1a"><td class="bold">(=) Lucro bruto</td><td class="right bold" style="color:${profitColor}; font-size:16px">${fmt(data.grossProfit)}</td></tr>
+      <tr><td>(-) Perda por mortalidade (${fmtNum(data.mortalityRate)}%: ${data.deadHeads} cab.)</td><td class="right red">${fmt(data.mortalityLoss)}</td></tr>
+      <tr style="border-top:2px solid #1a1a1a"><td class="bold">(=) Lucro bruto por cabeça</td><td class="right bold" style="color:${profitColor}; font-size:16px">${fmt(data.grossProfit)}</td></tr>
     </table>
   </div>
 
@@ -250,7 +297,9 @@ function generateReportHTML(data: any): string {
         { label: 'Otimista', price: data.arrobaPrice + 30 },
       ].map(s => {
         const rev = data.currentArroba * s.price
-        const profit = rev - data.totalInvestment
+        const taxTotal = rev * 0.015 + rev * 0.002 + 14.46
+        const net = rev - taxTotal
+        const profit = net - data.totalInvestment
         return '<div class="scenario"><div style="font-size:11px;color:#666">' + s.label + '</div><div class="price">' + fmt(s.price) + '/@</div><div class="profit" style="color:' + (profit >= 0 ? '#22C55E' : '#EF4444') + '">' + fmt(profit) + '</div></div>'
       }).join('')}
     </div>
