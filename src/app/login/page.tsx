@@ -16,10 +16,21 @@ export default function LoginPage() {
     e.preventDefault(); setLoading(true); setError('')
     if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError('Email ou senha incorretos'); else { router.push('/dashboard'); router.refresh() }
+      if (error) setError('Email ou senha incorretos')
+      else { router.push('/dashboard'); router.refresh() }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
-      if (error) setError(error.message); else { await supabase.auth.signInWithPassword({ email, password }); router.push('/dashboard'); router.refresh() }
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (error) {
+        setError(error.message)
+      } else if (data.user && !data.session) {
+        // Supabase exige confirmação de email
+        setError('Conta criada! Verifique seu email para confirmar. Se não receber, tente fazer login direto.')
+      } else {
+        // Login automático após cadastro
+        const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password })
+        if (loginErr) setError('Conta criada! Faça login com seu email e senha.')
+        else { router.push('/dashboard'); router.refresh() }
+      }
     }
     setLoading(false)
   }
