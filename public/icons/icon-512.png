@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="128" fill="#050506"/>
+  <rect x="20" y="20" width="472" height="472" rx="108" fill="#111114" stroke="#F97316" stroke-width="3" stroke-opacity="0.3"/>
+  <text x="256" y="220" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="120" font-weight="900" fill="white">RADAR</text>
+  <text x="256" y="330" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="120" font-weight="900" fill="#F97316">MIX</text>
+  <text x="256" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" font-weight="700" fill="#F97316" opacity="0.6">IA</text>
+</svg>
