@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { quoteRespondSchema } from '@/lib/schemas'
 import { NextRequest, NextResponse } from 'next/server'
 
 // POST: fornecedor responde cotação (aceitar/recusar)
@@ -19,16 +20,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Fornecedor não encontrado' }, { status: 404 })
     }
 
-    const { quote_id, status, response_price, response_notes } = await request.json()
-
-    if (!quote_id || !status) {
-      return NextResponse.json({ error: 'ID da cotação e status são obrigatórios' }, { status: 400 })
+    const body = await request.json()
+    const parsed = quoteRespondSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
     }
-
-    const validStatuses = ['respondida', 'aceita', 'recusada']
-    if (!validStatuses.includes(status)) {
-      return NextResponse.json({ error: 'Status inválido. Use: respondida, aceita ou recusada' }, { status: 400 })
-    }
+    const { quote_id, status, response_price, response_notes } = parsed.data
 
     // Verificar que a cotação pertence ao fornecedor
     const { data: quote } = await supabase
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (response_price !== undefined && response_price !== null) {
-      updateData.response_price = parseFloat(response_price)
+      updateData.response_price = response_price
     }
 
     const { data, error } = await supabase

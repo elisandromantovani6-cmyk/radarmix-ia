@@ -1,6 +1,8 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { generateRecommendation } from '@/lib/recommendation-engine'
 import { askClaude, buildRecommendationPrompt } from '@/lib/claude-api'
+import { recommendSchema } from '@/lib/schemas'
+import { checkRateLimit } from '@/lib/rate-limiter'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -12,11 +14,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { herd_id } = await request.json()
-
-    if (!herd_id || typeof herd_id !== 'string' || !/^[0-9a-f-]{36}$/i.test(herd_id)) {
-      return NextResponse.json({ error: 'ID de lote inválido' }, { status: 400 })
+    // Rate limiting: 20 requests por hora
+    const rateCheck = checkRateLimit(user.id)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Limite de requisições excedido. Tente novamente em breve.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+      )
     }
+
+    const body = await request.json()
+    const parsed = recommendSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    const { herd_id } = parsed.data
 
     // Buscar lote com dados completos
     const { data: herd, error: herdError } = await supabase

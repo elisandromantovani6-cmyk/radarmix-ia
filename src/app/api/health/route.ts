@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { healthEventSchema } from '@/lib/schemas'
 import { NextRequest, NextResponse } from 'next/server'
 
 // GET: lista eventos sanitários do produtor (filtro por herd_id e type)
@@ -42,6 +43,13 @@ export async function POST(request: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
     const body = await request.json()
+    const parsed = healthEventSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
     const {
       herd_id,
       protocol_id,
@@ -52,16 +60,7 @@ export async function POST(request: NextRequest) {
       head_count,
       notes,
       event_date,
-    } = body
-
-    // Validações básicas
-    if (!event_type || !product_name) {
-      return NextResponse.json({ error: 'Tipo e nome do produto são obrigatórios' }, { status: 400 })
-    }
-
-    if (!herd_id) {
-      return NextResponse.json({ error: 'Lote é obrigatório' }, { status: 400 })
-    }
+    } = parsed.data
 
     // Buscar lote para validar propriedade e pegar farm_id
     const { data: herd } = await supabase
@@ -75,8 +74,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Calcular custo total
-    const costPerHead = cost_per_head ? parseFloat(cost_per_head) : null
-    const count = head_count ? parseInt(head_count) : herd.head_count
+    const costPerHead = cost_per_head ?? null
+    const count = head_count ?? herd.head_count
     const totalCost = costPerHead && count ? costPerHead * count : null
 
     // Calcular próxima data baseada no frequency_days do protocolo

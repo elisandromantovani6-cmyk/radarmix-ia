@@ -1,5 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { askClaude } from '@/lib/claude-api'
+import { stockingRateSchema } from '@/lib/schemas'
+import { checkRateLimit } from '@/lib/rate-limiter'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Capacidade de suporte por forrageira (UA/ha) - fonte Embrapa
@@ -32,11 +34,24 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    const { area_ha, forage_type, pasture_condition, head_count, avg_weight_kg, herd_id } = await request.json()
-
-    if (!area_ha || area_ha <= 0) {
-      return NextResponse.json({ error: 'Informe a área em hectares' }, { status: 400 })
+    // Rate limiting: 20 requests por hora
+    const rateCheck = checkRateLimit(user.id)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Limite de requisições excedido. Tente novamente em breve.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+      )
     }
+
+    const body = await request.json()
+    const parsed = stockingRateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    const { area_ha, forage_type, pasture_condition, head_count, avg_weight_kg, herd_id } = parsed.data
 
     // Determinar época
     const month = new Date().getMonth() + 1

@@ -1,5 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { askClaude } from '@/lib/claude-api'
+import { climatePredictSchema } from '@/lib/schemas'
+import { checkRateLimit } from '@/lib/rate-limiter'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -8,7 +10,24 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    const { history_data } = await request.json()
+    // Rate limiting: 20 requests por hora
+    const rateCheck = checkRateLimit(user.id)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Limite de requisições excedido. Tente novamente em breve.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+      )
+    }
+
+    const body = await request.json()
+    const parsed = climatePredictSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    const { history_data } = parsed.data
 
     const prompt = `Você é o Radar IA, especialista em pastagens tropicais do Mato Grosso.
 

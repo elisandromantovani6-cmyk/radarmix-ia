@@ -1,14 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 export default function ProgressiveQuestion({ herd }: { herd: any }) {
   const [value, setValue] = useState('')
   const [saving, setSaving] = useState(false)
   const [answered, setAnswered] = useState(false)
-  const supabase = createClient()
   const router = useRouter()
 
   // Só mostra se condição do pasto não foi preenchida
@@ -26,10 +24,15 @@ export default function ProgressiveQuestion({ herd }: { herd: any }) {
     }
     const completeness = Math.min(100, 20 + Math.round((filled / fields.length) * 80))
 
-    await supabase
-      .from('herds')
-      .update({ pasture_condition: value, profile_completeness: completeness })
-      .eq('id', herd.id)
+    const res = await fetch('/api/herds/update', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ herd_id: herd.id, pasture_condition: value, profile_completeness: completeness }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      console.error('Erro ao salvar:', err.error)
+    }
 
     setSaving(false)
     setAnswered(true)

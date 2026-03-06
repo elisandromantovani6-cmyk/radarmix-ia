@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { askClaude } from '@/lib/claude-api'
+import { checkRateLimit } from '@/lib/rate-limiter'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -9,6 +10,15 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+    }
+
+    // Rate limiting: 20 requests por hora
+    const rateCheck = checkRateLimit(user.id)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Limite de requisições excedido. Tente novamente em breve.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+      )
     }
 
     const { simulationData } = await request.json()

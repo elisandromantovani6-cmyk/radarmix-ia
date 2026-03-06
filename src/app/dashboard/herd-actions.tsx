@@ -40,12 +40,15 @@ export default function HerdActions({ herd, allHerds, onClose }: { herd: any, al
     const count = parseInt(moveCount)
     if (!count || count <= 0 || count > herd.head_count || !targetHerdId) return
     setLoading(true)
-    const target = allHerds.find(h => h.id === targetHerdId)
-    if (!target) return
-    await supabase.from('herds').update({ head_count: herd.head_count - count }).eq('id', herd.id)
-    await supabase.from('herds').update({ head_count: target.head_count + count }).eq('id', targetHerdId)
-    await supabase.from('herd_history').insert({ herd_id: herd.id, event_type: 'movimentacao', details: { tipo: 'saida', quantidade: count, destino_lote: target.name, destino_id: targetHerdId } })
-    await supabase.from('herd_history').insert({ herd_id: targetHerdId, event_type: 'movimentacao', details: { tipo: 'entrada', quantidade: count, origem_lote: herd.name, origem_id: herd.id } })
+    const res = await fetch('/api/herds/actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'move', herd_id: herd.id, target_herd_id: targetHerdId, count }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      console.error('Erro ao mover:', err.error)
+    }
     setLoading(false)
     router.refresh()
     onClose()
@@ -55,14 +58,15 @@ export default function HerdActions({ herd, allHerds, onClose }: { herd: any, al
     const count = parseInt(splitCount)
     if (!count || count <= 0 || count >= herd.head_count || !splitName) return
     setLoading(true)
-    await supabase.from('herds').update({ head_count: herd.head_count - count }).eq('id', herd.id)
-    await supabase.from('herds').insert({
-      farm_id: herd.farm_id, name: splitName, species: herd.species, head_count: count,
-      main_phase: herd.main_phase, forage_id: herd.forage_id, breed_id: herd.breed_id,
-      avg_weight_kg: herd.avg_weight_kg, sex: herd.sex, pasture_condition: herd.pasture_condition,
-      profile_completeness: herd.profile_completeness,
+    const res = await fetch('/api/herds/actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'split', herd_id: herd.id, split_name: splitName, split_count: count }),
     })
-    await supabase.from('herd_history').insert({ herd_id: herd.id, event_type: 'divisao', details: { novo_lote: splitName, quantidade_movida: count, quantidade_restante: herd.head_count - count } })
+    if (!res.ok) {
+      const err = await res.json()
+      console.error('Erro ao dividir:', err.error)
+    }
     setLoading(false)
     router.refresh()
     onClose()
@@ -71,8 +75,15 @@ export default function HerdActions({ herd, allHerds, onClose }: { herd: any, al
   const handlePhaseChange = async () => {
     if (newPhase === herd.main_phase) return
     setLoading(true)
-    await supabase.from('herds').update({ main_phase: newPhase, current_product_id: null }).eq('id', herd.id)
-    await supabase.from('herd_history').insert({ herd_id: herd.id, event_type: 'mudanca_fase', details: { fase_anterior: herd.main_phase, fase_nova: newPhase } })
+    const res = await fetch('/api/herds/actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'phase', herd_id: herd.id, new_phase: newPhase }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      console.error('Erro ao mudar fase:', err.error)
+    }
     setLoading(false)
     router.refresh()
     onClose()
@@ -82,13 +93,22 @@ export default function HerdActions({ herd, allHerds, onClose }: { herd: any, al
     if (!newProductId) return
     setLoading(true)
     const selectedProduct = products.find(p => p.id === newProductId)
-    await supabase.from('herds').update({ current_product_id: newProductId }).eq('id', herd.id)
-    await supabase.from('herd_history').insert({ herd_id: herd.id, event_type: 'troca_produto', details: {
-      produto_anterior: herd.product?.name || 'Nenhum',
-      produto_novo: selectedProduct?.name || newProductId,
-      linha_nova: selectedProduct?.line,
-      motivo: 'Troca manual pelo produtor',
-    }})
+    const res = await fetch('/api/herds/actions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'product',
+        herd_id: herd.id,
+        product_id: newProductId,
+        product_name: selectedProduct?.name || newProductId,
+        old_product_name: herd.product?.name || 'Nenhum',
+        product_line: selectedProduct?.line,
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      console.error('Erro ao trocar produto:', err.error)
+    }
     setLoading(false)
     router.refresh()
     onClose()
@@ -96,8 +116,15 @@ export default function HerdActions({ herd, allHerds, onClose }: { herd: any, al
 
   const handleDelete = async () => {
     setLoading(true)
-    await supabase.from('herd_history').insert({ herd_id: herd.id, event_type: 'encerramento', details: { nome: herd.name, cabecas: herd.head_count, motivo: 'Encerrado pelo produtor' } })
-    await supabase.from('herds').delete().eq('id', herd.id)
+    const res = await fetch('/api/herds/actions', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ herd_id: herd.id }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      console.error('Erro ao encerrar lote:', err.error)
+    }
     setLoading(false)
     router.refresh()
     onClose()

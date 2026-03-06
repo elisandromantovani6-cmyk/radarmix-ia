@@ -1,4 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { cochoSchema } from '@/lib/schemas'
+import { checkRateLimit } from '@/lib/rate-limiter'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -10,11 +12,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { image_base64, herd_id } = await request.json()
-
-    if (!image_base64) {
-      return NextResponse.json({ error: 'Nenhuma imagem enviada' }, { status: 400 })
+    // Rate limiting: 20 requests por hora
+    const rateCheck = checkRateLimit(user.id)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Limite de requisições excedido. Tente novamente em breve.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+      )
     }
+
+    const body = await request.json()
+    const validatedInput = cochoSchema.safeParse(body)
+    if (!validatedInput.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: validatedInput.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    const { image_base64, herd_id } = validatedInput.data
 
     // Contexto do lote (opcional)
     let herdContext = ''

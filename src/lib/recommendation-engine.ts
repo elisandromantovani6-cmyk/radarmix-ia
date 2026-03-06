@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 
-interface HerdData {
+export interface HerdData {
   id: string
   species: string
   main_phase: string
@@ -12,7 +12,7 @@ interface HerdData {
   pasture_condition: string | null
 }
 
-interface Recommendation {
+export interface Recommendation {
   product: any
   score: number
   reasons: string[]
@@ -169,7 +169,7 @@ export async function generateRecommendation(
   return scored[0] || null
 }
 
-function analyzeForageDeficits(forage: any, season: string): string[] {
+export function analyzeForageDeficits(forage: any, season: string): string[] {
   const deficits: string[] = []
   const prefix = season === 'seca' ? 'dry_' : 'rainy_'
 
@@ -194,7 +194,7 @@ function analyzeForageDeficits(forage: any, season: string): string[] {
   return deficits
 }
 
-function checkMineralMatch(product: any, deficits: string[]): { score: number, reasons: string[] } {
+export function checkMineralMatch(product: any, deficits: string[]): { score: number, reasons: string[] } {
   let score = 0
   const reasons: string[] = []
 
@@ -228,7 +228,7 @@ function checkMineralMatch(product: any, deficits: string[]): { score: number, r
   return { score, reasons }
 }
 
-function matchPhase(product: any, phase: string): boolean {
+export function matchPhase(product: any, phase: string): boolean {
   const name = (product.name || '').toLowerCase()
   const line = (product.line || '').toLowerCase()
 
@@ -244,7 +244,7 @@ function matchPhase(product: any, phase: string): boolean {
   return false
 }
 
-function mapPhaseToFactor(phase: string): string {
+export function mapPhaseToFactor(phase: string): string {
   const map: Record<string, string> = {
     'cria': 'cria',
     'recria': 'recria',
@@ -255,7 +255,7 @@ function mapPhaseToFactor(phase: string): string {
   return map[phase] || phase
 }
 
-function estimateConsumption(product: any, herd: HerdData, breedFactor: any): number {
+export function estimateConsumption(product: any, herd: HerdData, breedFactor: any): number {
   // Consumo base em g/cab/dia por tipo de produto
   let base = 100 // mineral padrão
 

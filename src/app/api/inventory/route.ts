@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { inventorySchema } from '@/lib/schemas'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -33,10 +34,26 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    const { farm_id, product_id, product_name, quantity_kg, daily_consumption_kg, unit_price, notes } = await request.json()
+    const body = await request.json()
+    const parsed = inventorySchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    const { farm_id, product_id, product_name, quantity_kg, daily_consumption_kg, unit_price, notes } = parsed.data
 
-    if (!product_name || !quantity_kg) {
-      return NextResponse.json({ error: 'Informe o produto e a quantidade' }, { status: 400 })
+    // Validar que farm_id pertence ao usuário autenticado
+    const { data: farm } = await supabase
+      .from('farms')
+      .select('id')
+      .eq('id', farm_id)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!farm) {
+      return NextResponse.json({ error: 'Fazenda não encontrada ou não pertence ao usuário' }, { status: 403 })
     }
 
     const dailyConsumption = daily_consumption_kg || 0

@@ -1,4 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { chatSchema } from '@/lib/schemas'
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter'
 import { NextRequest, NextResponse } from 'next/server'
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
@@ -45,18 +47,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
+    // Rate limiting: 30 requests por hora para chat
+    const rateCheck = checkRateLimit(user.id, RATE_LIMITS.chat.limit, RATE_LIMITS.chat.windowMs)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Limite de requisições excedido. Tente novamente em breve.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+      )
+    }
+
     const body = await request.json()
-    const { messages, herd_context } = body
-
-    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
-      return NextResponse.json({ error: 'Mensagens inválidas' }, { status: 400 })
+    const parsed = chatSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
     }
-
-    for (const m of messages) {
-      if (!m.role || !m.content || typeof m.content !== 'string' || m.content.length > 2000) {
-        return NextResponse.json({ error: 'Formato de mensagem inválido' }, { status: 400 })
-      }
-    }
+    const { messages, herd_context } = parsed.data
 
     if (!ANTHROPIC_API_KEY) {
       return NextResponse.json({ error: 'API key não configurada' }, { status: 500 })

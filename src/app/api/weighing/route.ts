@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { weighingSchema } from '@/lib/schemas'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -7,7 +8,15 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
-    const { herd_id, weight_kg, date, notes } = await request.json()
+    const body = await request.json()
+    const parsed = weighingSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    const { herd_id, weight_kg, date, notes } = parsed.data
 
     // Buscar lote
     const { data: herd } = await supabase
@@ -21,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const oldWeight = herd.avg_weight_kg
-    const newWeight = parseFloat(weight_kg)
+    const newWeight = weight_kg
 
     // Calcular GMD real se tinha peso anterior
     let gmdReal = null

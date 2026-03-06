@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { feedbackSchema } from '@/lib/schemas'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -10,7 +11,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
-    const { consultation_id, herd_id, product_id, rating, comment } = await request.json()
+    const body = await request.json()
+    const parsed = feedbackSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    const { consultation_id, herd_id, product_id, rating, comment } = parsed.data
 
     // Salvar feedback
     const { error } = await supabase.from('recommendation_feedback').insert({
