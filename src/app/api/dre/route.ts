@@ -38,6 +38,19 @@ export async function GET(request: NextRequest) {
 
     const lastSim = simulations && simulations.length > 0 ? simulations[0].result : null
 
+    // Buscar custos registrados na tabela custos_lote
+    const { data: custosLote } = await supabase
+      .from('custos_lote')
+      .select('category, value, period')
+      .eq('herd_id', herdId)
+      .eq('user_id', user.id)
+
+    // Buscar custos sanitários reais dos health_events
+    const { data: healthEvents } = await supabase
+      .from('health_events')
+      .select('total_cost')
+      .eq('herd_id', herdId)
+
     // Calcular DRE
     const initialWeight = weighings && weighings.length > 0
       ? (weighings[0].details as any)?.peso_novo || herd.avg_weight_kg || 350
@@ -53,13 +66,39 @@ export async function GET(request: NextRequest) {
 
     const gmdReal = daysInLot > 0 ? gainKg / daysInLot : 0
 
-    // Custos estimados (usa dados da última simulação se disponível)
-    const dailyCosts = lastSim?.costs || {
-      suplemento: 0.32,
-      pasto: 2.20,
-      mao_obra: 1.40,
-      sanidade: 0.50,
-      outros: 0.80,
+    // Custos: prioriza custos_lote registrados > simulação > fallback
+    const categoryMap: Record<string, string> = {
+      nutricao: 'suplemento', pasto: 'pasto', mao_obra: 'mao_obra', sanitario: 'sanidade', outros: 'outros',
+    }
+    let dailyCosts: Record<string, number>
+    let costSource: 'registrado' | 'estimado'
+
+    if (custosLote && custosLote.length > 0) {
+      dailyCosts = { suplemento: 0, pasto: 0, mao_obra: 0, sanidade: 0, outros: 0 }
+      for (const custo of custosLote) {
+        const mapped = categoryMap[custo.category] || 'outros'
+        let dailyValue = Number(custo.value) || 0
+        if (custo.period === 'mensal') dailyValue = dailyValue / 30
+        else if (custo.period === 'unico') dailyValue = dailyValue / daysInLot
+        dailyCosts[mapped] = (dailyCosts[mapped] || 0) + dailyValue
+      }
+      costSource = 'registrado'
+    } else {
+      dailyCosts = lastSim?.costs || {
+        suplemento: 0.32, pasto: 2.20, mao_obra: 1.40, sanidade: 0.50, outros: 0.80,
+      }
+      costSource = 'estimado'
+    }
+
+    // Sobrescrever sanidade com custo real dos health_events se disponível
+    let healthCostsReal = false
+    if (healthEvents && healthEvents.length > 0) {
+      const totalHealthCost = healthEvents.reduce((sum, e) => sum + (Number(e.total_cost) || 0), 0)
+      const headCount = herd.head_count || 1
+      if (totalHealthCost > 0) {
+        dailyCosts.sanidade = totalHealthCost / headCount / daysInLot
+        healthCostsReal = true
+      }
     }
 
     const dailyTotal = Object.values(dailyCosts).reduce((sum: number, v: any) => sum + v, 0)
@@ -131,6 +170,8 @@ export async function GET(request: NextRequest) {
         per_head: {
           operational_month: Math.round(dailyTotal * 30 * 100) / 100,
         },
+        source: costSource,
+        health_costs_real: healthCostsReal,
       },
       revenue: {
         arroba_price: arrobaPrice,

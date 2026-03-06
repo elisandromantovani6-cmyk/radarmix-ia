@@ -82,7 +82,19 @@ export default function DREPanel({ herdId, herdName }: { herdId: string, herdNam
                 <span className="text-red-400">{fmt(data.costs.animal)}</span>
               </div>
               <div className="flex justify-between text-sm text-gray-400">
-                <span>(-) Operacional ({data.period.days}d)</span>
+                <span>(-) Operacional ({data.period.days}d)
+                  <span className={"ml-2 text-xs px-2 py-0.5 rounded-full " +
+                    (data.costs.source === 'registrado'
+                      ? "bg-green-500/20 text-green-400"
+                      : "bg-yellow-500/20 text-yellow-400")}>
+                    {data.costs.source === 'registrado' ? '\u2705 Registrado' : '\u26A0\uFE0F Estimado'}
+                  </span>
+                  {data.costs.health_costs_real && (
+                    <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
+                      \u2705 Sanidade real
+                    </span>
+                  )}
+                </span>
                 <span className="text-red-400">{fmt(data.costs.total_operational)}</span>
               </div>
               <div className="border-t border-gray-700 my-1"></div>

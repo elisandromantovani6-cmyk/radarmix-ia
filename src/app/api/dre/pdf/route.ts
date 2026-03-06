@@ -39,12 +39,53 @@ export async function GET(request: NextRequest) {
 
     const lastSim = simulations?.[0]?.result || null
 
+    // Buscar custos registrados
+    const { data: custosLote } = await supabase
+      .from('custos_lote')
+      .select('category, value, period')
+      .eq('herd_id', herdId)
+      .eq('user_id', user.id)
+
+    // Buscar custos sanitários reais
+    const { data: healthEvents } = await supabase
+      .from('health_events')
+      .select('total_cost')
+      .eq('herd_id', herdId)
+
     // Calcular dados
     const createdDate = new Date(herd.created_at)
     const now = new Date()
     const daysInLot = Math.max(1, Math.round((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)))
 
-    const dailyCosts = lastSim?.costs || { suplemento: 0.32, pasto: 2.20, mao_obra: 1.40, sanidade: 0.50, outros: 0.80 }
+    const categoryMap: Record<string, string> = {
+      nutricao: 'suplemento', pasto: 'pasto', mao_obra: 'mao_obra', sanitario: 'sanidade', outros: 'outros',
+    }
+    let dailyCosts: Record<string, number>
+    let costSource: 'registrado' | 'estimado'
+
+    if (custosLote && custosLote.length > 0) {
+      dailyCosts = { suplemento: 0, pasto: 0, mao_obra: 0, sanidade: 0, outros: 0 }
+      for (const custo of custosLote) {
+        const mapped = categoryMap[custo.category] || 'outros'
+        let dailyValue = Number(custo.value) || 0
+        if (custo.period === 'mensal') dailyValue = dailyValue / 30
+        else if (custo.period === 'unico') dailyValue = dailyValue / daysInLot
+        dailyCosts[mapped] = (dailyCosts[mapped] || 0) + dailyValue
+      }
+      costSource = 'registrado'
+    } else {
+      dailyCosts = lastSim?.costs || { suplemento: 0.32, pasto: 2.20, mao_obra: 1.40, sanidade: 0.50, outros: 0.80 }
+      costSource = 'estimado'
+    }
+
+    // Sobrescrever sanidade com custo real dos health_events
+    if (healthEvents && healthEvents.length > 0) {
+      const totalHealthCost = healthEvents.reduce((sum: number, e: any) => sum + (Number(e.total_cost) || 0), 0)
+      const headCount = herd.head_count || 1
+      if (totalHealthCost > 0) {
+        dailyCosts.sanidade = totalHealthCost / headCount / daysInLot
+      }
+    }
     const dailyTotal = Object.values(dailyCosts).reduce((sum: number, v: any) => sum + v, 0)
     const totalOperational = dailyTotal * daysInLot
     const animalCost = lastSim?.animal_price || 3200
@@ -74,6 +115,7 @@ export async function GET(request: NextRequest) {
       roi,
       weighings: weighings || [],
       date: now.toLocaleDateString('pt-BR'),
+      costSource,
     })
 
     return new NextResponse(html, {
@@ -187,7 +229,7 @@ function generateReportHTML(data: any): string {
   </div>
 
   <div class="section">
-    <h3>Custos Operacionais (R$/cabeça/dia)</h3>
+    <h3>Custos Operacionais (R$/cabe\u00e7a/dia) <span style="font-size:11px;padding:2px 8px;border-radius:4px;margin-left:8px;background:${data.costSource === 'registrado' ? '#DCFCE7' : '#FEF3C7'};color:${data.costSource === 'registrado' ? '#166534' : '#92400E'}">${data.costSource === 'registrado' ? '\u{1F4CA} Custos registrados' : '\u26A0\uFE0F Custos estimados'}</span></h3>
     <table>
       <tr><td>Suplemento</td><td class="right">${fmt(data.dailyCosts.suplemento)}</td></tr>
       <tr><td>Pasto / Arrendamento</td><td class="right">${fmt(data.dailyCosts.pasto)}</td></tr>

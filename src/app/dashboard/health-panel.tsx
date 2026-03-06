@@ -55,7 +55,9 @@ interface AlertData {
 }
 
 export default function HealthPanel({ herdId, herdName, headCount }: { herdId: string, herdName: string, headCount: number }) {
-  const [tab, setTab] = useState<'events' | 'register' | 'calendar'>('events')
+  const [tab, setTab] = useState<'events' | 'register' | 'calendar' | 'ia'>('events')
+  const [aiSuggestions, setAiSuggestions] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
   const [events, setEvents] = useState<HealthEvent[]>([])
   const [alerts, setAlerts] = useState<AlertData | null>(null)
   const [protocols, setProtocols] = useState<Protocol[]>([])
@@ -213,6 +215,7 @@ export default function HealthPanel({ herdId, herdName, headCount }: { herdId: s
           { key: 'events' as const, label: 'Histórico' },
           { key: 'register' as const, label: '+ Registrar' },
           { key: 'calendar' as const, label: 'Calendário' },
+          { key: 'ia' as const, label: '\uD83E\uDE7A IA' },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={"text-[11px] px-3 py-1.5 rounded-lg transition-all " +
@@ -530,6 +533,60 @@ export default function HealthPanel({ herdId, herdName, headCount }: { herdId: s
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Sugestões IA */}
+      {tab === 'ia' && (
+        <div>
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={async () => {
+                setAiLoading(true)
+                setAiSuggestions('')
+                try {
+                  const res = await fetch('/api/health/suggestions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ herd_id: herdId }),
+                  })
+                  const json = await res.json()
+                  if (res.ok) setAiSuggestions(json.suggestions)
+                  else setAiSuggestions('Erro: ' + (json.error || 'Falha ao gerar sugest\u00f5es'))
+                } catch { setAiSuggestions('Erro de conex\u00e3o') }
+                setAiLoading(false)
+              }}
+              disabled={aiLoading}
+              className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all">
+              {aiLoading ? 'Consultando IA...' : '\uD83E\uDE7A Gerar Sugest\u00f5es Sanit\u00e1rias'}
+            </button>
+            <button
+              onClick={() => window.open('/api/health/report?herd_id=' + herdId, '_blank')}
+              className="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition-all">
+              \uD83D\uDCCB Relat\u00f3rio GTA
+            </button>
+          </div>
+
+          {aiLoading && (
+            <div className="text-center py-6">
+              <div className="inline-block w-8 h-8 border-3 border-teal-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p className="text-xs text-zinc-400">Analisando situa\u00e7\u00e3o sanit\u00e1ria de {herdName}...</p>
+            </div>
+          )}
+
+          {aiSuggestions && !aiLoading && (
+            <div className="bg-teal-500/8 border border-teal-500/20 rounded-xl p-4">
+              <p className="text-[10px] text-teal-400 font-semibold uppercase mb-2">\uD83E\uDD16 Recomenda\u00e7\u00f5es do Veterin\u00e1rio IA</p>
+              <p className="text-xs text-zinc-300 whitespace-pre-line leading-relaxed">{aiSuggestions}</p>
+            </div>
+          )}
+
+          {!aiSuggestions && !aiLoading && (
+            <div className="text-center py-6">
+              <p className="text-xs text-zinc-500">Clique em "Gerar Sugest\u00f5es" para receber recomenda\u00e7\u00f5es do veterin\u00e1rio IA baseadas no hist\u00f3rico e regi\u00e3o do lote.</p>
+              <p className="text-[10px] text-zinc-600 mt-2">Ou clique em "Relat\u00f3rio GTA" para exportar o hist\u00f3rico sanit\u00e1rio completo.</p>
             </div>
           )}
         </div>

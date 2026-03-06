@@ -1,7 +1,7 @@
 'use client'
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const FEATURES: any[] = [
+const FEATURES = [
   {
     id: 0,
     icon: "\u{1F4E6}",
@@ -112,12 +112,12 @@ const FEATURES: any[] = [
     agent: "Agente Visual",
     tasks: [
       { id: "4a", text: "Coletar 500+ fotos de cochos (cheio, parcial, vazio)" },
-      { id: "4b", text: "Rotular fotos: % de sobra, qualidade visível" },
-      { id: "4c", text: "Treinar modelo de visão (pode usar API Claude Vision)", done: true },
-      { id: "4d", text: "Criar fluxo: tirar foto → upload → análise → resultado", done: true },
+      { id: "4b", text: "Rotular fotos: % de sobra, qualidade vis\u00edvel" },
+      { id: "4c", text: "Treinar modelo de vis\u00e3o (pode usar API Claude Vision)", done: true },
+      { id: "4d", text: "Criar fluxo: tirar foto \u2192 upload \u2192 an\u00e1lise \u2192 resultado", done: true },
       { id: "4e", text: "MVP alternativo: produtor informa sobra manualmente (mais simples)", done: true },
-      { id: "4f", text: "Tela de resultado: '12% sobra — reduza 0.8kg/cab/dia'", done: true },
-      { id: "4g", text: "Treinar modelo continuamente com novas fotos dos usuários" },
+      { id: "4f", text: "Tela de resultado: '12% sobra \u2014 reduza 0.8kg/cab/dia'", done: true },
+      { id: "4g", text: "Treinar modelo continuamente com novas fotos dos usu\u00e1rios" },
     ],
   },
   {
@@ -188,12 +188,12 @@ const FEATURES: any[] = [
     agent: "Agente Financeiro",
     tasks: [
       { id: "8a", text: "Definir modelo financeiro: categorias de custo por lote", done: true },
-      { id: "8b", text: "Criar tabela 'custos_lote' no Supabase", done: true },
+      { id: "8b", text: "Criar tabela 'custos_lote' no Supabase" },
       { id: "8c", text: "Tela de input: custo aquisi\u00e7\u00e3o, sanit\u00e1rio, MDO, outros", done: true },
       { id: "8d", text: "C\u00e1lculo autom\u00e1tico: custo acumulado + proje\u00e7\u00e3o de receita", done: true },
       { id: "8e", text: "Simula\u00e7\u00e3o: 'Se arroba cair pra R$290, sua margem vira X%'", done: true },
       { id: "8f", text: "Dashboard visual com gr\u00e1fico de evolu\u00e7\u00e3o de custo", done: true },
-      { id: "8g", text: "Exportar relatório em PDF por lote", done: true },
+      { id: "8g", text: "Exportar relat\u00f3rio em PDF por lote" },
     ],
   },
   {
@@ -211,7 +211,7 @@ const FEATURES: any[] = [
       { id: "9c", text: "Segmentar por regi\u00e3o, tamanho e sistema (pasto/confin.)", done: true },
       { id: "9d", text: "Criar badges: 'Mestre do Confinamento', 'Arroba de Ouro'", done: true },
       { id: "9e", text: "Tela de ranking com posi\u00e7\u00e3o do produtor", done: true },
-      { id: "9f", text: "Notificações: 'Você subiu pro Top 20%!'", done: true },
+      { id: "9f", text: "Notifica\u00e7\u00f5es: 'Voc\u00ea subiu pro Top 20%!'" },
       { id: "9g", text: "Garantir anonimiza\u00e7\u00e3o total dos dados", done: true },
     ],
   },
@@ -231,7 +231,7 @@ const FEATURES: any[] = [
       { id: "10d", text: "Sistema de cota\u00e7\u00e3o: produtor pede, fornecedor responde", done: true },
       { id: "10e", text: "Modelo de receita: taxa de 3-5% sobre transa\u00e7\u00f5es" },
       { id: "10f", text: "Integrar com gateway de pagamento (Stripe/Asaas)" },
-      { id: "10g", text: "Painel do fornecedor para gerenciar produtos e preços", done: true },
+      { id: "10g", text: "Painel do fornecedor para gerenciar produtos e pre\u00e7os" },
       { id: "10h", text: "Validar com 5 fornecedores reais da sua regi\u00e3o" },
     ],
   },
@@ -247,7 +247,7 @@ const FEATURES: any[] = [
     tasks: [
       { id: "11a", text: "Integrar API INMET (dados p\u00fablicos e gratuitos)", done: true },
       { id: "11b", text: "Integrar ClimAPI da Embrapa (17 vari\u00e1veis por lat/long)", done: true },
-      { id: "11c", text: "Calcular ITU (\u00cdndice Temperatura e Umidade) autom\u00e1tico", done: true },
+      { id: "11c", text: "Calcular ITU (Indice Temperatura e Umidade) autom\u00e1tico", done: true },
       { id: "11d", text: "Widget de clima na tela principal do app", done: true },
       { id: "11e", text: "Alerta de estresse t\u00e9rmico: ITU > 72 = perigo", done: true },
       { id: "11f", text: "Ajuste autom\u00e1tico da dieta pelo clima (calor = + densidade energ.)", done: true },
@@ -258,7 +258,7 @@ const FEATURES: any[] = [
     ],
   },
   {
-    id: 13,
+    id: 12.1,
     icon: "\uD83D\uDC04",
     title: "Controle Individual de Animal",
     difficulty: "medium",
@@ -280,7 +280,7 @@ const FEATURES: any[] = [
     ],
   },
   {
-    id: 14,
+    id: 13,
     icon: "\uD83D\uDC89",
     title: "Manejo Sanit\u00e1rio \u2014 Calend\u00e1rio de Vacinas",
     difficulty: "medium",
@@ -290,19 +290,19 @@ const FEATURES: any[] = [
     agent: "Agente Sanit\u00e1rio",
     tasks: [
       { id: "14a", text: "Criar tabelas 'health_protocols' e 'health_events' no Supabase", done: true },
-      { id: "14b", text: "Calendário sanitário oficial MT: aftosa, brucelose, raiva, clostridioses", done: true },
-      { id: "14c", text: "Tela de registro de evento sanitário (vacina, vermífugo, tratamento)", done: true },
-      { id: "14d", text: "Alertas automáticos: 'Vacinação de aftosa em 15 dias'", done: true },
-      { id: "14e", text: "Controle de vermifugação: OPG, princípio ativo, rotação de base", done: true },
-      { id: "14f", text: "Custo sanitário por cabeça: integrar no DRE do lote", done: true },
-      { id: "14g", text: "Histórico sanitário do lote e do animal individual", done: true },
-      { id: "14h", text: "Relatório sanitário para GTA e fiscalização (INDEA-MT)" },
-      { id: "14i", text: "IA sugere protocolo sanitário baseado na região e época", done: true },
-      { id: "14j", text: "Dashboard sanitário: lotes em dia vs atrasados", done: true },
+      { id: "14b", text: "Calend\u00e1rio sanit\u00e1rio oficial MT: aftosa, brucelose, raiva, clostridioses", done: true },
+      { id: "14c", text: "Tela de registro de evento sanit\u00e1rio (vacina, verm\u00edfugo, tratamento)", done: true },
+      { id: "14d", text: "Alertas autom\u00e1ticos: 'Vacina\u00e7\u00e3o de aftosa em 15 dias'", done: true },
+      { id: "14e", text: "Controle de vermifuga\u00e7\u00e3o: OPG, princ\u00edpio ativo, rota\u00e7\u00e3o de base", done: true },
+      { id: "14f", text: "Custo sanit\u00e1rio por cabe\u00e7a: integrar no DRE do lote" },
+      { id: "14g", text: "Hist\u00f3rico sanit\u00e1rio do lote e do animal individual", done: true },
+      { id: "14h", text: "Relat\u00f3rio sanit\u00e1rio para GTA e fiscaliza\u00e7\u00e3o (INDEA-MT)" },
+      { id: "14i", text: "IA sugere protocolo sanit\u00e1rio baseado na regi\u00e3o e \u00e9poca" },
+      { id: "14j", text: "Dashboard sanit\u00e1rio: lotes em dia vs atrasados", done: true },
     ],
   },
   {
-    id: 15,
+    id: 14,
     icon: "\uD83D\uDCF1",
     title: "App Mobile Nativo + Modo Offline",
     difficulty: "hard",
@@ -314,8 +314,8 @@ const FEATURES: any[] = [
       { id: "15a", text: "PWA configurado com Service Worker e manifest", done: true },
       { id: "15b", text: "App publicado com HTTPS no Vercel", done: true },
       { id: "15c", text: "Converter para React Native (Expo) para app nativo" },
-      { id: "15d", text: "Banco local (IndexedDB) para dados offline", done: true },
-      { id: "15e", text: "Sincronização automática: offline → online com Supabase", done: true },
+      { id: "15d", text: "Banco local (SQLite/WatermelonDB) para dados offline" },
+      { id: "15e", text: "Sincroniza\u00e7\u00e3o autom\u00e1tica: offline \u2192 online com Supabase" },
       { id: "15f", text: "Modo campo: interface simplificada para uso no curral" },
       { id: "15g", text: "Integra\u00e7\u00e3o Bluetooth com balan\u00e7as (Coimma, Tru-Test)" },
       { id: "15h", text: "Publicar na Google Play Store" },
@@ -323,25 +323,339 @@ const FEATURES: any[] = [
       { id: "15j", text: "Push notifications: alertas de vacina, clima, pre\u00e7o da @" },
     ],
   },
+  {
+    id: 15,
+    icon: "\uD83D\uDD04",
+    title: "Comparar Produtos + Estoque + Lota\u00e7\u00e3o",
+    difficulty: "easy",
+    phase: 1,
+    weeks: "2-3",
+    description: "Funcionalidades extras: compara\u00e7\u00e3o entre produtos, controle de estoque com dias restantes, e c\u00e1lculo de lota\u00e7\u00e3o/capacidade do pasto.",
+    agent: "Agente Operacional",
+    tasks: [
+      { id: "16a", text: "Comparar produtos lado a lado (garantias, pre\u00e7o, indica\u00e7\u00e3o)", done: true },
+      { id: "16b", text: "Controle de estoque: produto, quantidade, consumo/dia, pre\u00e7o/kg", done: true },
+      { id: "16c", text: "Indicador de dias restantes de estoque com status (OK/Alerta)", done: true },
+      { id: "16d", text: "C\u00e1lculo de lota\u00e7\u00e3o: cab/ha atual vs capacidade suporte", done: true },
+      { id: "16e", text: "Alerta de superlota\u00e7\u00e3o autom\u00e1tico", done: true },
+      { id: "16f", text: "Bot\u00e3o + Adicionar estoque com formul\u00e1rio", done: true },
+    ],
+  },
+  {
+    id: 16,
+    icon: "\uD83C\uDFA8",
+    title: "Design + UX + Deploy",
+    difficulty: "easy",
+    phase: 1,
+    weeks: "1-2",
+    description: "Tema premium, logo real, navega\u00e7\u00e3o mobile, PWA e publica\u00e7\u00e3o no Vercel.",
+    agent: "Agente UX",
+    tasks: [
+      { id: "17a", text: "Tema premium dark com cores Radarmix (laranja #F97316)", done: true },
+      { id: "17b", text: "Fonte Outfit premium + cards glass morphism", done: true },
+      { id: "17c", text: "Logo real da Radarmix integrada no app", done: true },
+      { id: "17d", text: "Barra de navega\u00e7\u00e3o inferior (mobile-first): In\u00edcio, Chat, Connect, Ranking, Checklist", done: true },
+      { id: "17e", text: "Checklist de desenvolvimento vis\u00edvel no app", done: true },
+      { id: "17f", text: "Deploy no Vercel com HTTPS (radarmix-ia.vercel.app)", done: true },
+      { id: "17g", text: "PWA configurado: manifest + service worker + offline", done: true },
+      { id: "17h", text: "Pitch deck para investidores (12 slides)", done: true },
+      { id: "17i", text: "3 modelos de email para capta\u00e7\u00e3o de investimento", done: true },
+    ],
+  },
+  // ========== FASE 5 — IA AVANÇADA ==========
+  {
+    id: 17,
+    icon: "\uD83D\uDD2E",
+    title: "IA Previs\u00e3o de Lucro com Probabilidade",
+    difficulty: "medium",
+    phase: 5,
+    weeks: "2-4",
+    description: "IA prev\u00ea lucro futuro do lote antes de come\u00e7ar, com probabilidade, ponto de equil\u00edbrio e dias at\u00e9 abate.",
+    agent: "Agente Preditivo Financeiro",
+    tasks: [
+      { id: "18a", text: "Modelo: ra\u00e7a + peso + dieta + custo + @pre\u00e7o + clima \u2192 lucro prov\u00e1vel" },
+      { id: "18b", text: "Calcular probabilidade de lucro (%) com intervalo de confian\u00e7a" },
+      { id: "18c", text: "Ponto de equil\u00edbrio: pre\u00e7o m\u00ednimo da @ para n\u00e3o ter preju\u00edzo" },
+      { id: "18d", text: "Proje\u00e7\u00e3o de dias at\u00e9 abate com GMD estimado" },
+      { id: "18e", text: "Cen\u00e1rios: otimista, prov\u00e1vel, pessimista com Monte Carlo" },
+      { id: "18f", text: "Dashboard visual: gr\u00e1fico de probabilidade de lucro" },
+      { id: "18g", text: "Comparar cen\u00e1rios: confinar vs pasto vs semi" },
+    ],
+  },
+  {
+    id: 18,
+    icon: "\uD83C\uDF7D\uFE0F",
+    title: "IA Formuladora de Dieta Autom\u00e1tica",
+    difficulty: "medium",
+    phase: 5,
+    weeks: "3-5",
+    description: "IA monta dieta completa automaticamente: ingredientes, quantidades, custo, ganho esperado e efici\u00eancia.",
+    agent: "Agente Nutricionista IA",
+    tasks: [
+      { id: "19a", text: "Entrada: peso, ra\u00e7a, fase, pasto, objetivo (GMD desejado)" },
+      { id: "19b", text: "IA calcula exig\u00eancias nutricionais (PB, NDT, Ca, P, micromin.)" },
+      { id: "19c", text: "Seleciona ingredientes dispon\u00edveis (milho, farelo, n\u00facleo, mineral)" },
+      { id: "19d", text: "Otimiza dieta por custo m\u00ednimo atendendo exig\u00eancias (solver)" },
+      { id: "19e", text: "Sa\u00edda: kg de cada ingrediente + custo/dia + ganho esperado" },
+      { id: "19f", text: "Calcular efici\u00eancia alimentar (kg MS / kg ganho)" },
+      { id: "19g", text: "Comparar dieta IA vs dieta atual do produtor" },
+      { id: "19h", text: "Integrar com estoque: alertar quando ingrediente acabar" },
+    ],
+  },
+  {
+    id: 19,
+    icon: "\uD83D\uDCCA",
+    title: "Radar de Pre\u00e7os Agro (Bloomberg Rural)",
+    difficulty: "hard",
+    phase: 5,
+    weeks: "4-8",
+    description: "Monitor nacional de pre\u00e7os de insumos e arroba. IA detecta oportunidades de compra e venda.",
+    agent: "Agente de Mercado",
+    tasks: [
+      { id: "20a", text: "Integrar API CEPEA/Esalq para pre\u00e7o da @ em tempo real" },
+      { id: "20b", text: "Integrar IMEA-MT para pre\u00e7os de insumos (milho, soja, farelo)" },
+      { id: "20c", text: "Hist\u00f3rico de pre\u00e7os com gr\u00e1fico de tend\u00eancia (30, 90, 365 dias)" },
+      { id: "20d", text: "IA detecta queda de pre\u00e7o: 'Milho caiu 9% em 7 dias'" },
+      { id: "20e", text: "Calcular economia potencial: 'Comprar agora economiza R$ 5.420 no lote 3'" },
+      { id: "20f", text: "Alertas push de oportunidade de compra/venda" },
+      { id: "20g", text: "Comparar pre\u00e7os entre fornecedores do marketplace" },
+    ],
+  },
+  {
+    id: 20,
+    icon: "\uD83D\uDCF7",
+    title: "IA Estima Peso do Gado pela C\u00e2mera",
+    difficulty: "hard",
+    phase: 5,
+    weeks: "8-14",
+    description: "Produtor tira foto do animal. IA estima peso, escore corporal e crescimento sem balan\u00e7a.",
+    agent: "Agente Vis\u00e3o Animal",
+    tasks: [
+      { id: "21a", text: "Coletar dataset: 1000+ fotos de bovinos com peso real registrado" },
+      { id: "21b", text: "Treinar modelo: pose estimation + depth estimation \u2192 peso" },
+      { id: "21c", text: "Fluxo: tirar foto \u2192 upload \u2192 IA processa \u2192 peso estimado" },
+      { id: "21d", text: "Calcular escore corporal (1-9) pela foto" },
+      { id: "21e", text: "Comparar peso estimado vs \u00faltima pesagem real" },
+      { id: "21f", text: "Parceria com UFMT/Embrapa para valida\u00e7\u00e3o cient\u00edfica" },
+      { id: "21g", text: "Integrar com pesagem: substituir balan\u00e7a em fazendas menores" },
+    ],
+  },
+  {
+    id: 21,
+    icon: "\uD83C\uDF21\uFE0F",
+    title: "IA Previs\u00e3o de Estresse T\u00e9rmico",
+    difficulty: "easy",
+    phase: 5,
+    weeks: "1-2",
+    description: "Cruza temperatura, umidade, vento e radia\u00e7\u00e3o solar para prever estresse t\u00e9rmico e impacto no GMD.",
+    agent: "Agente Clima Avan\u00e7ado",
+    tasks: [
+      { id: "22a", text: "Cruzar previs\u00e3o 5 dias com modelo de ITU preditivo" },
+      { id: "22b", text: "Calcular impacto no GMD: 'Estresse previsto \u2192 -0.12 kg/dia'" },
+      { id: "22c", text: "Sugest\u00f5es autom\u00e1ticas: sombra, alterar dieta, manejo de \u00e1gua" },
+      { id: "22d", text: "Alerta antecipado: 'Estresse t\u00e9rmico em 2 dias'" },
+      { id: "22e", text: "Hist\u00f3rico de eventos de estresse vs GMD real (correla\u00e7\u00e3o)" },
+    ],
+  },
+  {
+    id: 22,
+    icon: "\uD83D\uDEE1\uFE0F",
+    title: "IA Previs\u00e3o de Problemas Sanit\u00e1rios",
+    difficulty: "medium",
+    phase: 5,
+    weeks: "3-5",
+    description: "Cruza clima, regi\u00e3o e hist\u00f3rico para prever risco de doen\u00e7as: pneumonia, tristeza parasit\u00e1ria, carrapato.",
+    agent: "Agente Sanit\u00e1rio Preditivo",
+    tasks: [
+      { id: "23a", text: "Modelo: clima + regi\u00e3o + \u00e9poca + hist\u00f3rico \u2192 risco de doen\u00e7a" },
+      { id: "23b", text: "Prever risco de carrapato com probabilidade (%)" },
+      { id: "23c", text: "Prever risco de pneumonia (frio + chuva + lota\u00e7\u00e3o)" },
+      { id: "23d", text: "Prever tristeza parasit\u00e1ria (\u00e9poca + regi\u00e3o end\u00eamica)" },
+      { id: "23e", text: "Recomenda\u00e7\u00e3o preventiva com prazo: 'Aplicar controle em 5 dias'" },
+      { id: "23f", text: "Integrar com calend\u00e1rio sanit\u00e1rio: antecipar vacinas se risco alto" },
+    ],
+  },
+  {
+    id: 23,
+    icon: "\uD83E\uDDE0",
+    title: "IA Intelig\u00eancia Coletiva (aprende com todos)",
+    difficulty: "hard",
+    phase: 5,
+    weeks: "6-10",
+    description: "Sistema aprende com milhares de fazendas. Sugere pr\u00e1ticas de produtores com perfil similar e melhores resultados.",
+    agent: "Agente Rede Neural",
+    tasks: [
+      { id: "24a", text: "Anonimizar e agregar dados de todos os produtores" },
+      { id: "24b", text: "Clustering: agrupar fazendas por perfil (ra\u00e7a, regi\u00e3o, sistema)" },
+      { id: "24c", text: "Benchmark: 'Produtores similares usam X e t\u00eam +14% GMD'" },
+      { id: "24d", text: "Sugest\u00f5es personalizadas baseadas em melhores pr\u00e1ticas da rede" },
+      { id: "24e", text: "Ranking an\u00f4nimo: 'Voc\u00ea est\u00e1 no top 20% da sua regi\u00e3o'" },
+      { id: "24f", text: "Precisa de massa cr\u00edtica: m\u00ednimo 100 produtores com dados reais" },
+    ],
+  },
+  {
+    id: 24,
+    icon: "\uD83D\uDCC8",
+    title: "IA Melhor Momento de Vender o Boi",
+    difficulty: "medium",
+    phase: 5,
+    weeks: "3-5",
+    description: "Cruza pre\u00e7o hist\u00f3rico, oferta de boi gordo, d\u00f3lar e exporta\u00e7\u00e3o para sugerir janela ideal de venda.",
+    agent: "Agente Trader",
+    tasks: [
+      { id: "25a", text: "Integrar dados hist\u00f3ricos de pre\u00e7o da @ (CEPEA, B3)" },
+      { id: "25b", text: "Modelo: sazonalidade + oferta + d\u00f3lar + exporta\u00e7\u00e3o \u2192 previs\u00e3o" },
+      { id: "25c", text: "Calcular janela ideal de venda com pre\u00e7o estimado" },
+      { id: "25d", text: "Alertar quando pre\u00e7o atingir ponto \u00f3timo de venda" },
+      { id: "25e", text: "Comparar: vender agora vs esperar 30/60/90 dias" },
+      { id: "25f", text: "Integrar com DRE: simular lucro em cada cen\u00e1rio de venda" },
+    ],
+  },
+  {
+    id: 25,
+    icon: "\uD83D\uDCA1",
+    title: "IA Detectora de Desperd\u00edcio Financeiro",
+    difficulty: "easy",
+    phase: 5,
+    weeks: "2-3",
+    description: "IA analisa custos, dieta e insumos e detecta onde o produtor est\u00e1 pagando mais que a m\u00e9dia regional.",
+    agent: "Agente Efici\u00eancia",
+    tasks: [
+      { id: "26a", text: "Comparar custo de dieta do produtor vs m\u00e9dia regional" },
+      { id: "26b", text: "Detectar insumo mais caro: 'Farelo 14% acima da regi\u00e3o'" },
+      { id: "26c", text: "Calcular dieta de custo \u00f3timo e comparar com atual" },
+      { id: "26d", text: "Sugerir trocas: fornecedor mais barato ou ingrediente alternativo" },
+      { id: "26e", text: "Relat\u00f3rio mensal de economia potencial (R$)" },
+    ],
+  },
+  {
+    id: 26,
+    icon: "\uD83E\uDD16",
+    title: "Copiloto da Fazenda (Consultor Digital Di\u00e1rio)",
+    difficulty: "medium",
+    phase: 5,
+    weeks: "3-5",
+    description: "Agente IA que analisa tudo e gera briefing matinal com a\u00e7\u00f5es do dia para o produtor.",
+    agent: "Agente Copiloto",
+    tasks: [
+      { id: "27a", text: "Cruzar todos os m\u00f3dulos: clima, lotes, estoque, sanit\u00e1rio, pre\u00e7os" },
+      { id: "27b", text: "Gerar resumo di\u00e1rio autom\u00e1tico com 3-5 a\u00e7\u00f5es priorit\u00e1rias" },
+      { id: "27c", text: "Exemplo: 'Reduzir milho lote 2, n\u00e3o pesar (chuva), comprar mineral'" },
+      { id: "27d", text: "Push notification matinal: briefing do dia" },
+      { id: "27e", text: "Aprender com feedback: produtor marca a\u00e7\u00f5es como feitas ou ignoradas" },
+      { id: "27f", text: "Tela dedicada no app: 'Bom dia, aqui est\u00e1 seu dia'" },
+    ],
+  },
+  // ========== FASE 6 — FINTECH AGRO ==========
+  {
+    id: 27,
+    icon: "\uD83C\uDFE6",
+    title: "Cr\u00e9dito Inteligente (Score Produtivo)",
+    difficulty: "hard",
+    phase: 6,
+    weeks: "10-16",
+    description: "IA calcula score produtivo da fazenda baseado em dados reais. Parceria com banco/fintech para aprova\u00e7\u00e3o de cr\u00e9dito.",
+    agent: "Agente Fintech",
+    tasks: [
+      { id: "28a", text: "Modelo de score produtivo: GMD, ROI, lota\u00e7\u00e3o, efici\u00eancia" },
+      { id: "28b", text: "Calcular capacidade de pagamento baseada no DRE real" },
+      { id: "28c", text: "Dashboard de score para o produtor: 'Seu score: 842'" },
+      { id: "28d", text: "Parceria com banco/fintech (BB, Sicredi, Asaas)" },
+      { id: "28e", text: "Integrar aprova\u00e7\u00e3o de cr\u00e9dito no app" },
+      { id: "28f", text: "Modelo de receita: comiss\u00e3o por cr\u00e9dito aprovado" },
+    ],
+  },
+  {
+    id: 28,
+    icon: "\uD83E\uDD1D",
+    title: "Compra Coletiva Autom\u00e1tica de Insumos",
+    difficulty: "medium",
+    phase: 6,
+    weeks: "4-8",
+    description: "IA detecta quando v\u00e1rios produtores da mesma regi\u00e3o precisam do mesmo insumo e dispara compra coletiva.",
+    agent: "Agente Negocia\u00e7\u00e3o",
+    tasks: [
+      { id: "29a", text: "Detectar demanda agregada: produtores + regi\u00e3o + produto + prazo" },
+      { id: "29b", text: "Calcular volume total e negociar pre\u00e7o com fornecedor" },
+      { id: "29c", text: "Notificar produtores: 'Pre\u00e7o normal R$78/saca \u2192 R$70 com 24 produtores'" },
+      { id: "29d", text: "Sistema de ades\u00e3o: produtor confirma quantidade e prazo" },
+      { id: "29e", text: "Log\u00edstica: coordenar entrega para m\u00faltiplas fazendas" },
+      { id: "29f", text: "Modelo de receita: comiss\u00e3o sobre economia gerada" },
+    ],
+  },
+  {
+    id: 29,
+    icon: "\uD83D\uDEE1\uFE0F",
+    title: "Seguro Rural Baseado em Dados Reais",
+    difficulty: "hard",
+    phase: 6,
+    weeks: "10-16",
+    description: "Seguro rural mais barato porque o risco \u00e9 calculado com dados reais da fazenda (clima, pastagem, desempenho).",
+    agent: "Agente Seguros",
+    tasks: [
+      { id: "30a", text: "Modelo de risco: clima + pastagem + desempenho + hist\u00f3rico \u2192 risco" },
+      { id: "30b", text: "Calcular pr\u00eamio justo: 'Seguro mortalidade: R$ 2.180/ano'" },
+      { id: "30c", text: "Parceria com seguradora (Brasilseg, Fairfax, Swiss Re)" },
+      { id: "30d", text: "Dashboard de risco para o produtor" },
+      { id: "30e", text: "Modelo de receita: comiss\u00e3o seguradora" },
+    ],
+  },
+  {
+    id: 30,
+    icon: "\uD83D\uDCC9",
+    title: "Hedge Autom\u00e1tico da Arroba",
+    difficulty: "hard",
+    phase: 6,
+    weeks: "8-12",
+    description: "IA sugere travamento de pre\u00e7o futuro quando detecta probabilidade de queda. Integra\u00e7\u00e3o com B3/corretoras.",
+    agent: "Agente Hedge",
+    tasks: [
+      { id: "31a", text: "Modelo: pre\u00e7o atual + tend\u00eancia + oferta \u2192 probabilidade de queda" },
+      { id: "31b", text: "Sugerir travamento: 'Pre\u00e7o R$298, prob. queda 63%, travar a R$304'" },
+      { id: "31c", text: "Parceria com corretora B3 para execu\u00e7\u00e3o" },
+      { id: "31d", text: "Dashboard de posi\u00e7\u00f5es e resultados do hedge" },
+      { id: "31e", text: "Modelo de receita: comiss\u00e3o por opera\u00e7\u00e3o" },
+    ],
+  },
+  {
+    id: 31,
+    icon: "\uD83D\uDCB3",
+    title: "Conta Digital do Produtor",
+    difficulty: "hard",
+    phase: 6,
+    weeks: "12-20",
+    description: "Conta banc\u00e1ria digital dentro do app: pagar insumos, receber venda de gado, cr\u00e9dito rural, financiamento.",
+    agent: "Agente Banking",
+    tasks: [
+      { id: "32a", text: "Parceria com institui\u00e7\u00e3o de pagamento (Asaas, Stark, Celcoin)" },
+      { id: "32b", text: "Conta digital com Pix, boleto e TED" },
+      { id: "32c", text: "Pagar insumos direto pelo marketplace" },
+      { id: "32d", text: "Receber pagamento de venda de gado no app" },
+      { id: "32e", text: "Cr\u00e9dito rural integrado com score produtivo" },
+      { id: "32f", text: "Modelo de receita: taxas, float, cr\u00e9dito" },
+    ],
+  },
 ];
 
-const DIFFICULTY_CONFIG: Record<string, any> = {
+const DIFFICULTY_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; time: string }> = {
   easy: { label: "F\u00c1CIL", color: "#059669", bg: "#D1FAE5", border: "#6EE7B7", time: "2-4 semanas" },
   medium: { label: "M\u00c9DIO", color: "#D97706", bg: "#FEF3C7", border: "#FCD34D", time: "4-8 semanas" },
   hard: { label: "DIF\u00cdCIL", color: "#DC2626", bg: "#FEE2E2", border: "#FCA5A5", time: "8-12 semanas" },
 };
 
-const PHASE_CONFIG: Record<number, any> = {
+const PHASE_CONFIG: Record<number, { label: string; color: string; bg: string }> = {
   1: { label: "FASE 1 \u2014 MVP", color: "#059669", bg: "#ECFDF5" },
   2: { label: "FASE 2 \u2014 Expans\u00e3o", color: "#2563EB", bg: "#EFF6FF" },
   3: { label: "FASE 3 \u2014 Plataforma", color: "#7C3AED", bg: "#F5F3FF" },
   4: { label: "FASE 4 \u2014 Domin\u00e2ncia", color: "#DC2626", bg: "#FEF2F2" },
+  5: { label: "FASE 5 \u2014 IA Avan\u00e7ada", color: "#0891B2", bg: "#ECFEFF" },
+  6: { label: "FASE 6 \u2014 Fintech Agro", color: "#CA8A04", bg: "#FEFCE8" },
 };
 
 export default function RadarmixChecklist() {
   const [checked, setChecked] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    FEATURES.forEach((f: any) => f.tasks.forEach((t: any) => { if (t.done) initial[t.id] = true; }));
+    FEATURES.forEach(f => f.tasks.forEach(t => { if (t.done) initial[t.id] = true; }));
     return initial;
   });
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -361,8 +675,8 @@ export default function RadarmixChecklist() {
   const completedTasks = Object.values(checked).filter(Boolean).length;
   const pct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  const getFeatureProgress = (feature: any) => {
-    const done = feature.tasks.filter((t: any) => checked[t.id]).length;
+  const getFeatureProgress = (feature: typeof FEATURES[number]) => {
+    const done = feature.tasks.filter((t) => checked[t.id]).length;
     return { done, total: feature.tasks.length, pct: Math.round((done / feature.tasks.length) * 100) };
   };
 
@@ -374,10 +688,10 @@ export default function RadarmixChecklist() {
       <div style={{ background: "linear-gradient(160deg, #0B3D2E 0%, #064E3B 40%, #0F172A 100%)", padding: "28px 20px 24px", borderBottom: "1px solid rgba(16,185,129,0.2)" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <img src="/logo-radarmix.jpg" alt="Radarmix" style={{ width: 42, height: 42, borderRadius: 12, objectFit: "contain" }} />
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{"\u{1F402}"}</div>
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: "-0.03em", color: "#F9FAFB" }}>RADARMIX IA</h1>
-              <p style={{ fontSize: 11, margin: 0, color: "#6EE7B7", letterSpacing: "0.08em", fontFamily: "'JetBrains Mono', monospace" }}>CHECKLIST DE DESENVOLVIMENTO</p>
+              <p style={{ fontSize: 11, margin: 0, color: "#6EE7B7", letterSpacing: "0.08em", fontFamily: "'JetBrains Mono', monospace" }}>CHECKLIST DE DESENVOLVIMENTO &bull; v3.1 &bull; 33 FEATURES &bull; 6 FASES</p>
             </div>
           </div>
 
@@ -394,10 +708,10 @@ export default function RadarmixChecklist() {
 
           {/* Phase stats */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {[1, 2, 3, 4].map((phase) => {
+            {[1, 2, 3, 4, 5, 6].map((phase) => {
               const phaseFeatures = FEATURES.filter((f) => f.phase === phase);
               const phaseTasks = phaseFeatures.reduce((a, f) => a + f.tasks.length, 0);
-              const phaseDone = phaseFeatures.reduce((a, f) => a + f.tasks.filter((t: any) => checked[t.id]).length, 0);
+              const phaseDone = phaseFeatures.reduce((a, f) => a + f.tasks.filter((t) => checked[t.id]).length, 0);
               const pp = phaseTasks > 0 ? Math.round((phaseDone / phaseTasks) * 100) : 0;
               return (
                 <div key={phase} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color: "#9CA3AF", background: "rgba(255,255,255,0.05)", padding: "4px 8px", borderRadius: 6 }}>
@@ -414,11 +728,13 @@ export default function RadarmixChecklist() {
       <div style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.06)", position: "sticky", top: 0, zIndex: 10, backdropFilter: "blur(12px)" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", padding: "8px 20px", display: "flex", gap: 4, overflowX: "auto" }}>
           {[
-            { val: 0, label: "Todas" },
+            { val: 0, label: "Todas (33)" },
             { val: 1, label: "Fase 1 \u2022 MVP" },
             { val: 2, label: "Fase 2 \u2022 Expans\u00e3o" },
             { val: 3, label: "Fase 3 \u2022 Plataforma" },
             { val: 4, label: "Fase 4 \u2022 Domin\u00e2ncia" },
+            { val: 5, label: "Fase 5 \u2022 IA Avan\u00e7ada" },
+            { val: 6, label: "Fase 6 \u2022 Fintech" },
           ].map((f) => (
             <button
               key={f.val}
@@ -471,10 +787,12 @@ export default function RadarmixChecklist() {
                 style={{ padding: "16px 18px", cursor: "pointer", userSelect: "none" }}
               >
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                  {/* Icon */}
                   <div style={{ fontSize: 26, lineHeight: 1, flexShrink: 0, marginTop: 2, filter: isComplete ? "none" : "grayscale(0.3)", opacity: isComplete ? 1 : 0.8 }}>
                     {isComplete ? "\u2705" : feature.icon}
                   </div>
 
+                  {/* Content */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
                       <span style={{ fontSize: 14, fontWeight: 700, color: isComplete ? "#6EE7B7" : "#F3F4F6", textDecoration: isComplete ? "line-through" : "none", textDecorationColor: "rgba(110,231,183,0.4)" }}>
@@ -494,6 +812,7 @@ export default function RadarmixChecklist() {
                       </span>
                     </div>
 
+                    {/* Mini progress */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 99 }}>
                         <div style={{ height: "100%", width: `${prog.pct}%`, background: prog.pct === 100 ? "#10B981" : prog.pct > 0 ? "#F59E0B" : "transparent", borderRadius: 99, transition: "width 0.4s ease" }} />
@@ -520,7 +839,7 @@ export default function RadarmixChecklist() {
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, paddingLeft: 40 }}>
-                    {feature.tasks.map((task: any) => {
+                    {feature.tasks.map((task) => {
                       const isDone = checked[task.id];
                       return (
                         <div
@@ -540,6 +859,7 @@ export default function RadarmixChecklist() {
                             userSelect: "none",
                           }}
                         >
+                          {/* Checkbox */}
                           <div
                             style={{
                               width: 18,
@@ -563,6 +883,7 @@ export default function RadarmixChecklist() {
                             )}
                           </div>
 
+                          {/* Task text */}
                           <span
                             style={{
                               fontSize: 12,
@@ -599,15 +920,15 @@ export default function RadarmixChecklist() {
                     <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: cfg.bg, color: cfg.color, fontFamily: "'JetBrains Mono', monospace" }}>{cfg.label}</span>
                   </div>
                   <p style={{ fontSize: 20, fontWeight: 800, color: "#F3F4F6", margin: "4px 0 2px" }}>{feats.length}</p>
-                  <p style={{ fontSize: 10, color: "#6B7280", margin: 0 }}>funcionalidades \u2022 {cfg.time} cada</p>
+                  <p style={{ fontSize: 10, color: "#6B7280", margin: 0 }}>funcionalidades &bull; {cfg.time} cada</p>
                 </div>
               );
             })}
           </div>
           <div style={{ marginTop: 16, padding: 14, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 10 }}>
-            <p style={{ fontSize: 12, color: "#6EE7B7", fontWeight: 600, margin: "0 0 4px" }}>{"\u{1F4A1}"} Ordem recomendada de desenvolvimento:</p>
+            <p style={{ fontSize: 12, color: "#6EE7B7", fontWeight: 600, margin: "0 0 4px" }}>{"\u{1F4A1}"} Status do projeto:</p>
             <p style={{ fontSize: 11, color: "#9CA3AF", margin: 0, lineHeight: 1.5 }}>
-              Fase 1 (MVP): Infraestrutura + Radar/Lotes + Simulador Lucro/@ + Chat IA + Clima {"\u2192"} Fase 2: Balan\u00e7a + DRE {"\u2192"} Fase 3: Radar Regional + Ranking + Marketplace + Preditiva {"\u2192"} Fase 4: Computer Vision + Sat\u00e9lite
+              Fase 1 (MVP): {"\u2705"} COMPLETA &bull; Fase 2 (Campo): {"\uD83D\uDD04"} 50% &bull; Fase 3 (Plataforma): {"\uD83D\uDD04"} 35% &bull; Fase 4 (DeepTech): {"\uD83D\uDD04"} 57% &bull; Fase 5 (IA Avan\u00e7ada): {"\u2B1C"} Nova &bull; Fase 6 (Fintech): {"\u2B1C"} Nova &bull; App: radarmix-ia.vercel.app
             </p>
           </div>
         </div>
