@@ -1,101 +1,93 @@
-const CACHE_NAME = 'radarmix-v1';
-const STATIC_ASSETS = [
-  '/dashboard',
+const CACHE_NAME = 'radarmix-v2'
+const STATIC_CACHE = 'radarmix-static-v2'
+
+const APP_PAGES = [
+  '/',
   '/login',
+  '/dashboard',
   '/chat',
   '/marketplace',
   '/ranking',
-];
+  '/checklist',
+  '/marketplace/fornecedor',
+]
 
-// Install - cache static assets
+const STATIC_ASSETS = [
+  '/logo-radarmix.jpg',
+  '/manifest.json',
+  '/icons/icon-192.svg',
+  '/icons/icon-512.svg',
+]
+
+// Instalar: cachear páginas e assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
-  self.skipWaiting();
-});
+    Promise.all([
+      caches.open(CACHE_NAME).then(cache => cache.addAll(APP_PAGES)),
+      caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS)),
+    ]).then(() => self.skipWaiting())
+  )
+})
 
-// Activate - cleanup old caches
+// Ativar: limpar caches antigos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
-  );
-  self.clients.claim();
-});
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(key => key !== CACHE_NAME && key !== STATIC_CACHE)
+          .map(key => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
+  )
+})
 
-// Fetch - network first, fallback to cache
+// Fetch: estratégia inteligente
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
+  const url = new URL(event.request.url)
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') return;
+  // Ignorar requests não-GET (POST, PUT etc vão direto pra rede)
+  if (event.request.method !== 'GET') return
 
-  // Skip API requests (always go to network)
-  if (request.url.includes('/api/')) return;
+  // Ignorar API calls (não cachear dados dinâmicos da API)
+  if (url.pathname.startsWith('/api/')) return
 
+  // Assets estáticos: Cache First
+  if (
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|ico|woff|woff2|ttf)$/) ||
+    url.hostname === 'fonts.googleapis.com' ||
+    url.hostname === 'fonts.gstatic.com'
+  ) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached
+        return fetch(event.request).then(response => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(STATIC_CACHE).then(cache => cache.put(event.request, clone))
+          }
+          return response
+        }).catch(() => new Response('', { status: 404 }))
+      })
+    )
+    return
+  }
+
+  // Páginas: Network First, Cache Fallback
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        // Cache successful responses
-        if (response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
+    fetch(event.request)
+      .then(response => {
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
         }
-        return response;
+        return response
       })
       .catch(() => {
-        // Offline - serve from cache
-        return caches.match(request).then((cached) => {
-          if (cached) return cached;
-
-          // Fallback offline page for navigation
-          if (request.mode === 'navigate') {
-            return new Response(
-              `<!DOCTYPE html>
-              <html lang="pt-BR">
-              <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>RADARMIX IA - Offline</title>
-                <style>
-                  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
-                  body { background: #050506; color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-                  .container { text-align: center; padding: 40px; }
-                  .icon { font-size: 64px; margin-bottom: 20px; }
-                  h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-                  h1 span { color: #F97316; }
-                  p { color: #71717A; font-size: 14px; margin-bottom: 24px; }
-                  button { background: linear-gradient(135deg, #F97316, #EA580C); color: white; border: none; padding: 12px 32px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; }
-                  .status { margin-top: 16px; padding: 12px; background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.2); border-radius: 12px; }
-                  .status p { color: #FB923C; margin: 0; font-size: 12px; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="icon">📡</div>
-                  <h1>RADAR<span>MIX</span> IA</h1>
-                  <p>Você está sem conexão com a internet.</p>
-                  <button onclick="location.reload()">Tentar novamente</button>
-                  <div class="status">
-                    <p>Os dados dos seus lotes foram salvos localmente. Quando a conexão voltar, tudo será sincronizado automaticamente.</p>
-                  </div>
-                </div>
-              </body>
-              </html>`,
-              { headers: { 'Content-Type': 'text/html' } }
-            );
-          }
-
-          return new Response('Offline', { status: 503 });
-        });
+        return caches.match(event.request).then(cached => {
+          if (cached) return cached
+          // Fallback: tenta a página principal do dashboard
+          return caches.match('/dashboard') || caches.match('/')
+        })
       })
-  );
-});
+  )
+})

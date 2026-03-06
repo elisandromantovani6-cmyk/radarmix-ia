@@ -6,6 +6,7 @@ import HerdCard from './herd-card'
 import CreateHerdModal from './create-herd-modal'
 import OrderSection from './order-section'
 import InventoryPanel from './inventory-panel'
+import OfflineIndicator from './offline-indicator'
 
 export default function FarmSection({ farm, herds, totalHeads, userId }: any) {
   const [showCreateFarm, setShowCreateFarm] = useState(false)
@@ -54,6 +55,7 @@ export default function FarmSection({ farm, herds, totalHeads, userId }: any) {
 
   return (
     <div>
+      <OfflineIndicator />
       {/* Farm header */}
       <div className="card p-4 sm:p-5 mb-4 sm:mb-6 animate-in">
         <div className="flex items-center justify-between gap-3">
