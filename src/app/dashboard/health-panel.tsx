@@ -43,6 +43,7 @@ interface HealthEvent {
   notes: string | null
   event_date: string
   next_due_date: string | null
+  protocol_id: string | null
   protocol: { name: string; type: string; frequency_days: number | null } | null
 }
 
@@ -55,7 +56,7 @@ interface AlertData {
 }
 
 export default function HealthPanel({ herdId, herdName, headCount }: { herdId: string, herdName: string, headCount: number }) {
-  const [tab, setTab] = useState<'events' | 'register' | 'calendar' | 'ia'>('events')
+  const [tab, setTab] = useState<'events' | 'register' | 'calendar' | 'ia'>('calendar')
   const [aiSuggestions, setAiSuggestions] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [events, setEvents] = useState<HealthEvent[]>([])
@@ -432,111 +433,219 @@ export default function HealthPanel({ herdId, herdName, headCount }: { herdId: s
       )}
 
       {/* Tab: Calendário visual */}
-      {tab === 'calendar' && (
-        <div>
-          <p className="text-[11px] text-zinc-500 mb-3 text-center">
-            Calendário sanitário — meses com protocolos recomendados
-          </p>
+      {tab === 'calendar' && (() => {
+        const currentMonth = new Date().getMonth() + 1
+        const mandatoryProtocols = protocols.filter(p => p.mandatory)
 
+        // Verificar quais obrigatórias já foram feitas este ano
+        const currentYear = new Date().getFullYear()
+        const doneThisYear = new Set(
+          events
+            .filter(ev => ev.event_date.startsWith(String(currentYear)))
+            .map(ev => ev.protocol_id)
+            .filter(Boolean)
+        )
+
+        return (
+        <div>
+          {/* Vacinas obrigatórias - destaque principal */}
+          {mandatoryProtocols.length > 0 && (
+            <div className="bg-red-500/8 border border-red-500/20 rounded-xl p-4 mb-4">
+              <p className="text-[12px] text-red-400 font-bold mb-3">
+                🚨 VACINAS OBRIGATÓRIAS — INDEA/MT
+              </p>
+              <div className="space-y-3">
+                {mandatoryProtocols.map(p => {
+                  const done = doneThisYear.has(p.id)
+                  const months = (p.recommended_months || []) as number[]
+                  const isMonthNow = months.includes(currentMonth)
+                  const nextMonth = months.find(m => m >= currentMonth) || months[0]
+                  const isOverdue = !done && months.some(m => m < currentMonth && !months.some(m2 => m2 >= currentMonth))
+
+                  return (
+                    <div key={p.id} className={"rounded-lg p-3 " +
+                      (done ? 'bg-green-500/8 border border-green-500/15' :
+                       isMonthNow ? 'bg-red-500/10 border border-red-500/25' :
+                       'bg-zinc-800/40 border border-zinc-700/30')}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px]">{TYPE_ICONS[p.type]}</span>
+                          <span className="text-[12px] font-bold text-white">{p.name}</span>
+                          {done && <span className="badge badge-green text-[9px]">Feito</span>}
+                          {!done && isMonthNow && <span className="badge badge-red text-[9px]">AGORA!</span>}
+                          {!done && !isMonthNow && <span className="badge badge-amber text-[9px]">Pendente</span>}
+                        </div>
+                        {!done && (
+                          <button onClick={() => { handleProtocolChange(p.id); setTab('register') }}
+                            className="badge badge-pink text-[10px] cursor-pointer hover:scale-105 transition-transform min-h-[32px]">
+                            Registrar
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-zinc-500 mt-1">{p.description}</p>
+                      <div className="flex items-center gap-1 mt-2 flex-wrap">
+                        <span className="text-[10px] text-zinc-600">Meses:</span>
+                        {MONTH_NAMES.map((mn, mi) => {
+                          const mNum = mi + 1
+                          const isRequired = months.includes(mNum)
+                          const isCurrent = mNum === currentMonth
+                          return (
+                            <span key={mi} className={"text-[10px] px-1.5 py-0.5 rounded " +
+                              (isRequired && isCurrent ? 'bg-red-500/30 text-red-300 font-bold' :
+                               isRequired ? 'bg-red-500/15 text-red-400 font-medium' :
+                               'text-zinc-700')}>
+                              {mn}
+                            </span>
+                          )
+                        })}
+                      </div>
+                      {p.frequency_days && (
+                        <p className="text-[10px] text-zinc-600 mt-1">
+                          Frequência: a cada {p.frequency_days} dias
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Calendário visual mensal */}
+          <p className="text-[11px] text-zinc-500 mb-2 font-semibold uppercase">Calendário Anual</p>
           <div className="grid grid-cols-4 gap-2">
             {MONTH_NAMES.map((month, idx) => {
               const monthNum = idx + 1
-              const currentMonth = new Date().getMonth() + 1
 
-              // Protocolos recomendados para este mês
               const monthProtocols = protocols.filter(p =>
                 p.recommended_months && p.recommended_months.includes(monthNum)
               )
+              const monthMandatory = monthProtocols.filter(p => p.mandatory)
+              const monthOptional = monthProtocols.filter(p => !p.mandatory)
 
-              // Eventos registrados neste mês
               const monthEvents = events.filter(ev => {
                 const evMonth = parseInt(ev.event_date.split('-')[1])
                 return evMonth === monthNum
               })
 
               const isCurrentMonth = monthNum === currentMonth
-              const hasMandatory = monthProtocols.some(p => p.mandatory)
+              const hasMandatory = monthMandatory.length > 0
+              const isPast = monthNum < currentMonth
               const hasEvents = monthEvents.length > 0
+
+              // Verificar se obrigatórias deste mês foram feitas
+              const mandatoryDone = monthMandatory.every(p => doneThisYear.has(p.id))
+              const mandatoryPending = hasMandatory && !mandatoryDone
 
               return (
                 <div key={month}
                   className={
-                    "rounded-lg p-2 text-center transition-all " +
-                    (isCurrentMonth
-                      ? 'bg-pink-500/15 border border-pink-500/30'
-                      : hasMandatory
-                        ? 'bg-red-500/8 border border-red-500/15'
-                        : monthProtocols.length > 0
-                          ? 'bg-zinc-800/40 border border-zinc-700/30'
-                          : 'bg-zinc-900/30 border border-zinc-800/20')
+                    "rounded-lg p-2 text-center transition-all cursor-pointer " +
+                    (isCurrentMonth && mandatoryPending
+                      ? 'bg-red-500/15 border-2 border-red-500/40 ring-1 ring-red-500/20'
+                      : isCurrentMonth
+                        ? 'bg-pink-500/15 border-2 border-pink-500/30'
+                        : isPast && mandatoryPending
+                          ? 'bg-red-500/10 border border-red-500/20'
+                          : hasMandatory
+                            ? 'bg-red-500/5 border border-red-500/15'
+                            : monthProtocols.length > 0
+                              ? 'bg-zinc-800/40 border border-zinc-700/30'
+                              : 'bg-zinc-900/30 border border-zinc-800/20')
                   }>
                   <p className={
                     "text-[11px] font-bold mb-1 " +
-                    (isCurrentMonth ? 'text-pink-400' : 'text-zinc-400')
+                    (isCurrentMonth ? 'text-pink-400' :
+                     isPast && mandatoryPending ? 'text-red-400' :
+                     'text-zinc-400')
                   }>
                     {month}
                   </p>
 
                   {/* Indicadores */}
                   <div className="flex justify-center gap-0.5 mb-1">
-                    {hasMandatory && <span className="w-1.5 h-1.5 rounded-full bg-red-500" title="Obrigatório" />}
-                    {monthProtocols.length > 0 && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Recomendado" />}
+                    {hasMandatory && (
+                      mandatoryDone
+                        ? <span className="w-2 h-2 rounded-full bg-green-500" title="Obrigatório - Feito" />
+                        : <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="Obrigatório - Pendente" />
+                    )}
+                    {monthOptional.length > 0 && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Recomendado" />}
                     {hasEvents && <span className="w-1.5 h-1.5 rounded-full bg-green-500" title="Realizado" />}
                   </div>
 
-                  {/* Contagem */}
-                  <p className="text-[11px] text-zinc-600">
-                    {monthProtocols.length > 0 && `${monthProtocols.length} prot.`}
-                    {hasEvents && ` ${monthEvents.length} reg.`}
-                  </p>
+                  {/* Nomes das obrigatórias */}
+                  {hasMandatory && (
+                    <div className="mt-0.5">
+                      {monthMandatory.slice(0, 2).map(p => (
+                        <p key={p.id} className={"text-[9px] leading-tight truncate " +
+                          (mandatoryDone ? 'text-green-500' : 'text-red-400 font-medium')}>
+                          {p.name}
+                        </p>
+                      ))}
+                      {monthMandatory.length > 2 && (
+                        <p className="text-[9px] text-zinc-600">+{monthMandatory.length - 2}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Contagem opcionais */}
+                  {monthOptional.length > 0 && (
+                    <p className="text-[9px] text-zinc-600 mt-0.5">
+                      +{monthOptional.length} rec.
+                    </p>
+                  )}
                 </div>
               )
             })}
           </div>
 
           {/* Legenda */}
-          <div className="flex justify-center gap-4 mt-3">
+          <div className="flex justify-center gap-3 mt-3 flex-wrap">
             <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-[11px] text-zinc-600">Obrigatório</span>
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-[11px] text-zinc-600">Obrigatório pendente</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <span className="text-[11px] text-zinc-600">Feito</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-blue-500" />
               <span className="text-[11px] text-zinc-600">Recomendado</span>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-[11px] text-zinc-600">Realizado</span>
-            </div>
           </div>
 
-          {/* Lista detalhada dos protocolos do mês atual */}
-          {alerts?.suggested && alerts.suggested.length > 0 && (
-            <div className="mt-3 bg-zinc-800/30 rounded-xl p-3">
-              <p className="text-[11px] text-zinc-400 font-semibold mb-2">
-                Protocolos de {MONTH_NAMES[(alerts.current_month || 1) - 1]}
-              </p>
-              {alerts.suggested.map(p => (
-                <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-zinc-800/50 last:border-0">
-                  <div>
-                    <span className="text-[11px] text-zinc-300">
-                      {TYPE_ICONS[p.type]} {p.name}
-                    </span>
-                    {p.mandatory && (
-                      <span className="badge badge-red text-[8px] ml-1">obrigatório</span>
-                    )}
-                    <p className="text-[9px] text-zinc-600 mt-0.5">{p.description}</p>
+          {/* Protocolos recomendados para o mês atual (não obrigatórios) */}
+          {(() => {
+            const currentOptional = protocols.filter(p =>
+              !p.mandatory && p.recommended_months && p.recommended_months.includes(currentMonth) && !doneThisYear.has(p.id)
+            )
+            if (currentOptional.length === 0) return null
+            return (
+              <div className="mt-3 bg-blue-500/8 border border-blue-500/15 rounded-xl p-3">
+                <p className="text-[11px] text-blue-400 font-semibold mb-2">
+                  💡 Recomendados para {MONTH_NAMES[currentMonth - 1]} (opcionais)
+                </p>
+                {currentOptional.map(p => (
+                  <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-zinc-800/50 last:border-0">
+                    <div>
+                      <span className="text-[11px] text-zinc-300">
+                        {TYPE_ICONS[p.type]} {p.name}
+                      </span>
+                      <p className="text-[10px] text-zinc-600 mt-0.5">{p.description}</p>
+                    </div>
+                    <button onClick={() => { handleProtocolChange(p.id); setTab('register') }}
+                      className="badge badge-blue text-[10px] cursor-pointer hover:scale-105 transition-transform">
+                      Registrar
+                    </button>
                   </div>
-                  <button onClick={() => { handleProtocolChange(p.id); setTab('register') }}
-                    className="badge badge-pink text-[9px] cursor-pointer hover:scale-105 transition-transform">
-                    Registrar
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )
+          })()}
         </div>
-      )}
+        )
+      })()}
 
       {/* Tab: Sugestões IA */}
       {tab === 'ia' && (
