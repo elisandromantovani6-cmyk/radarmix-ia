@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { calculateGeneticScore, type GeneticInput, type WeighingHistory } from '@/lib/genetic-score'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Taxa de mortalidade padrão por fase (%) - Embrapa / IMEA-MT / Assocon
@@ -54,6 +55,34 @@ export async function GET(request: NextRequest) {
       .limit(1)
 
     const lastSim = simulations && simulations.length > 0 ? simulations[0].result : null
+
+    // Calcular GMD real entre pesagens para score genético
+    const weighingHistoryItems: WeighingHistory[] = []
+    if (weighings && weighings.length >= 2) {
+      for (let i = 1; i < weighings.length; i++) {
+        const prev = weighings[i - 1]
+        const curr = weighings[i]
+        const prevWeight = (prev.details as any)?.peso_novo
+        const currWeight = (curr.details as any)?.peso_novo
+        if (prevWeight && currWeight) {
+          const daysDiff = (new Date(curr.created_at).getTime() - new Date(prev.created_at).getTime()) / (1000 * 60 * 60 * 24)
+          if (daysDiff > 0) {
+            const gmdCalc = (currWeight - prevWeight) / daysDiff
+            weighingHistoryItems.push({ gmd_real: gmdCalc, date: curr.created_at })
+          }
+        }
+      }
+    }
+
+    // Score genético
+    const geneticInput: GeneticInput = {
+      breed_name: (herd.breed as any)?.name || null,
+      genetic_pattern: (herd as any).genetic_pattern || null,
+      bull_quality: (herd as any).bull_quality || null,
+      phase: herd.main_phase,
+    }
+    const geneticScore = calculateGeneticScore(geneticInput, weighingHistoryItems)
+    const hasGeneticData = geneticInput.breed_name !== null || weighingHistoryItems.length > 0
 
     // Buscar custos registrados na tabela custos_lote
     const { data: custosLote } = await supabase
@@ -124,7 +153,7 @@ export async function GET(request: NextRequest) {
 
     // Receita projetada
     const arrobaPrice = lastSim?.arroba_price || 320
-    const carcassYield = 0.52
+    const carcassYield = hasGeneticData ? geneticScore.carcass_yield : 0.52
     const currentArroba = (currentWeight * carcassYield) / 15
     const projectedRevenue = currentArroba * arrobaPrice
 
@@ -238,6 +267,17 @@ export async function GET(request: NextRequest) {
         profit_per_lot: Math.round(grossProfit * effectiveHeads * 100) / 100,
       },
       scenarios,
+      genetic_score: {
+        declared: geneticScore.declared_score,
+        learned: geneticScore.learned_score,
+        final: geneticScore.final_score,
+        confidence: geneticScore.confidence,
+        weighing_count: geneticScore.weighing_count,
+        gmd_reference: geneticScore.gmd_reference,
+        gmd_adjusted: geneticScore.gmd_adjusted,
+        genetic_group: geneticScore.genetic_group,
+        carcass_yield: geneticScore.carcass_yield,
+      },
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import GeneticBadge from './genetic-badge'
 
 export default function ProfitSimulator({ herdId, herdName }: { herdId: string, herdName: string }) {
   const [loading, setLoading] = useState(false)
@@ -205,6 +206,50 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
               <p className="text-sm text-gray-500">Não foi possível gerar sugestões.</p>
             )}
           </div>
+
+          {/* SCORE GENETICO */}
+          {result.genetic_score && (
+            <div className="space-y-3">
+              <GeneticBadge
+                score={result.genetic_score.final}
+                confidence={result.genetic_score.confidence}
+                weighing_count={result.genetic_score.weighing_count}
+                genetic_group={result.genetic_score.genetic_group}
+              />
+              <details className="bg-gray-800/30 rounded-xl p-4">
+                <summary className="text-xs text-gray-500 font-semibold uppercase cursor-pointer">Detalhes do score genetico</summary>
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Score declarado</span>
+                    <span className="text-white">{fmtNum(result.genetic_score.declared, 0)}/100</span>
+                  </div>
+                  {result.genetic_score.learned !== null && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Score aprendido</span>
+                      <span className="text-white">{fmtNum(result.genetic_score.learned, 0)}/100</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm font-bold">
+                    <span className="text-gray-300">Score final</span>
+                    <span className="text-orange-400">{fmtNum(result.genetic_score.final, 0)}/100</span>
+                  </div>
+                  <div className="border-t border-gray-700 my-1"></div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">GMD referencia (raca)</span>
+                    <span className="text-gray-300">{fmtNum(result.genetic_score.gmd_reference, 3)} kg/dia</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">GMD ajustado (genetico)</span>
+                    <span className="text-green-400 font-bold">{fmtNum(result.genetic_score.gmd_adjusted, 3)} kg/dia</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Rendimento carcaca</span>
+                    <span className="text-gray-300">{fmtNum(result.carcass_yield * 100, 0)}%</span>
+                  </div>
+                </div>
+              </details>
+            </div>
+          )}
 
           {/* MORTALIDADE E IMPOSTOS */}
           <div className="bg-gray-800/50 rounded-xl p-4">

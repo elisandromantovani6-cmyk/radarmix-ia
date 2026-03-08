@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { simulateSchema } from '@/lib/schemas'
+import { calculateGeneticScore, type GeneticInput, type WeighingHistory } from '@/lib/genetic-score'
 import { NextRequest, NextResponse } from 'next/server'
 
 const ARROBA_PRICES = {
@@ -95,6 +96,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Lote não encontrado' }, { status: 404 })
     }
 
+    // Buscar pesagens do lote para score genético
+    const { data: herdHistory } = await supabase
+      .from('herd_history')
+      .select('weight_kg, created_at')
+      .eq('herd_id', herd_id)
+      .order('created_at', { ascending: true })
+
+    // Calcular GMD real entre pesagens consecutivas
+    const weighingHistoryItems: WeighingHistory[] = []
+    if (herdHistory && herdHistory.length >= 2) {
+      for (let i = 1; i < herdHistory.length; i++) {
+        const prev = herdHistory[i - 1]
+        const curr = herdHistory[i]
+        if (prev.weight_kg && curr.weight_kg) {
+          const daysDiff = (new Date(curr.created_at).getTime() - new Date(prev.created_at).getTime()) / (1000 * 60 * 60 * 24)
+          if (daysDiff > 0) {
+            const gmdReal = (curr.weight_kg - prev.weight_kg) / daysDiff
+            weighingHistoryItems.push({ gmd_real: gmdReal, date: curr.created_at })
+          }
+        }
+      }
+    }
+
+    // Calcular score genético
+    const geneticInput: GeneticInput = {
+      breed_name: (herd.breed as any)?.name || null,
+      genetic_pattern: (herd as any).genetic_pattern || null,
+      bull_quality: (herd as any).bull_quality || null,
+      phase: herd.main_phase,
+    }
+    const geneticScore = calculateGeneticScore(geneticInput, weighingHistoryItems)
+
     const product = herd.product as any
     if (!product) {
       return NextResponse.json({ error: 'Lote sem produto recomendado. Gere uma recomendação primeiro.' }, { status: 400 })
@@ -133,13 +166,16 @@ export async function POST(request: NextRequest) {
     }
     const months = cycle_months ?? defaultCycleMonths[herd.main_phase] ?? 6
 
-    // 5. GMD
+    // 5. GMD — usa genetic score se disponível, fallback para tabela fixa
     let gmdKey = herd.main_phase
     if (herd.main_phase === 'engorda' && line === 'rk') gmdKey = 'engorda_rk'
     if (herd.main_phase === 'recria' && (line === 'proteico' || line === 'prot.energ')) gmdKey = 'recria_proteico'
-    const gmd = GMD_ESTIMATES[gmdKey] || 0.45
+    const gmdFallback = GMD_ESTIMATES[gmdKey] || 0.45
 
-    const carcassYield = 0.52
+    // Usar GMD ajustado pela genética, ou fallback se não tem raça nem pesagens
+    const hasGeneticData = geneticInput.breed_name !== null || weighingHistoryItems.length > 0
+    const gmd = hasGeneticData ? geneticScore.gmd_adjusted : gmdFallback
+    const carcassYield = hasGeneticData ? geneticScore.carcass_yield : 0.52
 
     // 6. Cálculos operacionais
     const dailyGainArroba = (gmd * carcassYield) / 15
@@ -239,6 +275,16 @@ export async function POST(request: NextRequest) {
       product_name: product.name, product_line: product.line,
       arroba_price: arrobaPrice, arroba_avg_30d: ARROBA_PRICES.avg_30d, arroba_avg_90d: ARROBA_PRICES.avg_90d,
       gmd, carcass_yield: carcassYield, consumption_kg_day: consumptionKgDay,
+      genetic_score: {
+        declared: geneticScore.declared_score,
+        learned: geneticScore.learned_score,
+        final: geneticScore.final_score,
+        confidence: geneticScore.confidence,
+        weighing_count: geneticScore.weighing_count,
+        gmd_reference: geneticScore.gmd_reference,
+        gmd_adjusted: geneticScore.gmd_adjusted,
+        genetic_group: geneticScore.genetic_group,
+      },
       costs, cost_breakdown: costBreakdown,
       monthly_operational_cost: monthlyOperationalCost,
       monthly_gain_arroba: monthlyGainArroba,

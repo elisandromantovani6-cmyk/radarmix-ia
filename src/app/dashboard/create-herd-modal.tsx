@@ -13,6 +13,8 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
   const [breedId, setBreedId] = useState('')
   const [avgWeight, setAvgWeight] = useState('')
   const [sex, setSex] = useState('')
+  const [geneticPattern, setGeneticPattern] = useState('')
+  const [bullQuality, setBullQuality] = useState('')
   const [forages, setForages] = useState<any[]>([])
   const [breeds, setBreeds] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -37,11 +39,14 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
 
     // Calcular completude
     let filled = 0
-    const optionalFields = [forageId, breedId, avgWeight, sex]
+    const optionalFields = [forageId, breedId, avgWeight, sex, geneticPattern, bullQuality]
     optionalFields.forEach(f => { if (f) filled++ })
     // Base 20% (nome, espécie, cabeças, fase) + opcionais
-    const completeness = Math.min(100, 20 + Math.round((filled / 5) * 80))
+    const completeness = Math.min(100, 20 + Math.round((filled / 7) * 80))
 
+    // TODO: Para salvar genetic_pattern e bull_quality, executar no Supabase:
+    // ALTER TABLE herds ADD COLUMN genetic_pattern text;
+    // ALTER TABLE herds ADD COLUMN bull_quality text;
     const { error: insertError } = await supabase.from('herds').insert({
       farm_id: farmId,
       name,
@@ -52,6 +57,8 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
       breed_id: breedId || null,
       avg_weight_kg: avgWeight ? parseFloat(avgWeight) : null,
       sex: sex || null,
+      genetic_pattern: geneticPattern || null,
+      bull_quality: bullQuality || null,
       profile_completeness: completeness,
     })
 
@@ -192,6 +199,36 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
               <option value="">Selecione (opcional)...</option>
               {filteredBreeds.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
+          </div>
+
+          {/* Padrão genético + Qualidade do touro */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Padrao genetico</label>
+              <select
+                value={geneticPattern}
+                onChange={(e) => setGeneticPattern(e.target.value)}
+                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
+              >
+                <option value="">Nao sei</option>
+                <option value="puro">Puro</option>
+                <option value="cruzamento">Cruzamento industrial</option>
+                <option value="anelorado">Anelorado</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Qualidade do touro</label>
+              <select
+                value={bullQuality}
+                onChange={(e) => setBullQuality(e.target.value)}
+                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
+              >
+                <option value="">Nao sei</option>
+                <option value="ceip">CEIP</option>
+                <option value="provado">Provado</option>
+                <option value="comum">Comum</option>
+              </select>
+            </div>
           </div>
 
           {/* Sexo + Capim (lado a lado) */}
