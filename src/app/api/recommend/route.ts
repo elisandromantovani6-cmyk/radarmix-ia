@@ -68,6 +68,32 @@ export async function POST(request: NextRequest) {
       breedName = breed?.name || null
     }
 
+    // Dados nutricionais enriquecidos (BR-CORTE/CQBAL)
+    const nutritionData = recommendation.nutrition_data
+    const deficitDetails = nutritionData?.deficit_details || []
+
+    // Construir contexto nutricional para o prompt do Claude
+    let nutritionContext = ''
+    if (nutritionData?.feed_composition) {
+      const fc = nutritionData.feed_composition
+      nutritionContext += '\n\nDados CQBAL 4.0 da forrageira: ' + fc.feed_name +
+        ' (' + fc.season + ') - PB ' + fc.pb_percent + '%, NDT ' + fc.ndt_percent +
+        '%, FDN ' + fc.fdn_percent + '%, P ' + fc.p_g_kg + ' g/kg, Ca ' + fc.ca_g_kg + ' g/kg'
+    }
+    if (nutritionData?.nutrient_requirements) {
+      const nr = nutritionData.nutrient_requirements
+      nutritionContext += '\nExigências BR-CORTE 2023: ' + nr.body_weight_kg + ' kg, GMD ' +
+        nr.gmd_kg_day + ' kg/dia - CMS ' + nr.cms_kg_day + ' kg/dia, PB ' +
+        nr.pb_g_day + ' g/dia, NDT ' + nr.ndt_percent_ms + '% MS'
+    }
+    if (deficitDetails.length > 0) {
+      nutritionContext += '\nDéficits calculados (forrageira vs exigência):'
+      for (const d of deficitDetails) {
+        nutritionContext += '\n  - ' + d.nutrient + ': fornece ' + d.forage_supply +
+          ', precisa ' + d.animal_requirement + ' (' + d.deficit_percent + '% déficit, ' + d.severity + ')'
+      }
+    }
+
     // Gerar explicação com Claude
     const prompt = buildRecommendationPrompt({
       herdName: herd.name,
@@ -83,6 +109,7 @@ export async function POST(request: NextRequest) {
       deficits: recommendation.deficits,
       reasons: recommendation.reasons,
       score: recommendation.score,
+      nutritionContext,
     })
 
     const claudeExplanation = await askClaude(prompt)
@@ -104,6 +131,13 @@ export async function POST(request: NextRequest) {
         deficits: recommendation.deficits,
         reasons: recommendation.reasons,
         consumption_kg_day: recommendation.consumption_kg_day,
+        nutrition_data: {
+          cms_calculated: nutritionData?.cms_calculated,
+          pb_required_g_day: nutritionData?.pb_required_g_day,
+          ndt_required_percent: nutritionData?.ndt_required_percent,
+          deficit_details: deficitDetails,
+          source: nutritionData?.feed_composition?.source || null,
+        },
       },
     })
 
@@ -126,6 +160,14 @@ export async function POST(request: NextRequest) {
       deficits: recommendation.deficits,
       consumption_kg_day: recommendation.consumption_kg_day,
       explanation: claudeExplanation,
+      nutrition: nutritionData ? {
+        cms_kg_day: nutritionData.cms_calculated,
+        pb_required_g_day: nutritionData.pb_required_g_day,
+        ndt_required_percent: nutritionData.ndt_required_percent,
+        deficit_details: deficitDetails,
+        forage_source: nutritionData.feed_composition?.source || null,
+        requirements_source: nutritionData.nutrient_requirements?.source || null,
+      } : null,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

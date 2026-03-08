@@ -88,68 +88,56 @@ function createMockSupabase(config: {
   breed?: any
   breedFactors?: any[]
   products?: any[]
+  feedComposition?: any
+  nutrientRequirements?: any[]
+  breedAdjustments?: any[]
 } = {}) {
-  const mockSingle = (data: any) => ({
-    single: vi.fn().mockResolvedValue({ data, error: null }),
-  })
-
-  const mockSelect = (resolveWith: any) => {
-    const chain: any = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockResolvedValue({ data: resolveWith, error: null }),
-      single: vi.fn().mockResolvedValue({ data: resolveWith, error: null }),
-    }
+  // Cria uma chain genérica que suporta todos os métodos do Supabase
+  function makeChain(resolveData: any, isSingle = false) {
+    const chain: any = {}
+    chain.select = vi.fn().mockReturnValue(chain)
+    chain.eq = vi.fn().mockReturnValue(chain)
+    chain.ilike = vi.fn().mockReturnValue(chain)
+    chain.limit = vi.fn().mockResolvedValue({ data: Array.isArray(resolveData) ? resolveData : resolveData ? [resolveData] : [], error: null })
+    chain.order = vi.fn().mockResolvedValue({ data: Array.isArray(resolveData) ? resolveData : [], error: null })
+    chain.single = vi.fn().mockResolvedValue({ data: isSingle ? resolveData : null, error: null })
     return chain
   }
 
-  // Build a stateful mock that returns different data per table
   const fromMock = vi.fn().mockImplementation((table: string) => {
     if (table === 'forages') {
-      const chain: any = {}
-      chain.select = vi.fn().mockReturnValue(chain)
-      chain.eq = vi.fn().mockReturnValue(chain)
-      chain.single = vi.fn().mockResolvedValue({ data: config.forage ?? null, error: null })
-      return chain
+      return makeChain(config.forage, true)
     }
     if (table === 'breeds') {
-      const chain: any = {}
-      chain.select = vi.fn().mockReturnValue(chain)
-      chain.eq = vi.fn().mockReturnValue(chain)
-      chain.single = vi.fn().mockResolvedValue({ data: config.breed ?? null, error: null })
-      return chain
+      return makeChain(config.breed, true)
     }
     if (table === 'breed_nutrition_factors') {
       const chain: any = {}
       chain.select = vi.fn().mockReturnValue(chain)
-      chain.eq = vi.fn().mockReturnValue(chain)
-      // breed_nutrition_factors uses two .eq() calls, the second returns the array
       let eqCount = 0
       chain.eq = vi.fn().mockImplementation(() => {
         eqCount++
         if (eqCount >= 2) {
-          // Resolve the promise
           return Promise.resolve({ data: config.breedFactors ?? [], error: null })
         }
         return chain
       })
-      chain.select = vi.fn().mockReturnValue(chain)
       return chain
     }
     if (table === 'products') {
-      const chain: any = {}
-      chain.select = vi.fn().mockReturnValue(chain)
-      chain.eq = vi.fn().mockReturnValue(chain)
-      chain.order = vi.fn().mockResolvedValue({ data: config.products ?? [], error: null })
-      return chain
+      return makeChain(config.products ?? [])
+    }
+    if (table === 'feed_composition') {
+      return makeChain(config.feedComposition ?? null)
+    }
+    if (table === 'nutrient_requirements') {
+      return makeChain(config.nutrientRequirements ?? [])
+    }
+    if (table === 'breed_adjustment_factors') {
+      return makeChain(config.breedAdjustments ?? [])
     }
     // fallback
-    const chain: any = {}
-    chain.select = vi.fn().mockReturnValue(chain)
-    chain.eq = vi.fn().mockReturnValue(chain)
-    chain.order = vi.fn().mockResolvedValue({ data: [], error: null })
-    chain.single = vi.fn().mockResolvedValue({ data: null, error: null })
-    return chain
+    return makeChain(null)
   })
 
   return { from: fromMock } as any

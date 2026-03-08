@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { simulateSchema } from '@/lib/schemas'
 import { calculateGeneticScore, type GeneticInput, type WeighingHistory } from '@/lib/genetic-score'
 import { NextRequest, NextResponse } from 'next/server'
+import { SupabaseClient } from '@supabase/supabase-js'
 
 const ARROBA_PRICES = {
   current: 320.00,
@@ -63,6 +64,52 @@ const TAXES = {
   funrural: 0.015,     // 1,5% sobre receita bruta
   senar: 0.002,        // 0,2% sobre receita bruta
   fethab_per_head: 14.46, // FETHAB-MT por cabeça transportada
+}
+
+// Busca exigências nutricionais do BR-CORTE para CMS e NDT reais
+async function fetchNutrientReqForSimulation(
+  supabase: SupabaseClient,
+  breedType: string,
+  weight: number,
+  phase: string,
+  isConfinamento: boolean
+) {
+  const phaseMap: Record<string, string> = {
+    'cria': 'cria', 'recria': 'recria', 'engorda': 'engorda',
+    'lactacao': 'lactacao', 'reproducao': 'manutencao',
+  }
+  const productionPhase = phaseMap[phase] || 'recria'
+  const system = isConfinamento ? 'confinamento' : 'pasto'
+
+  const { data } = await supabase
+    .from('nutrient_requirements')
+    .select('cms_kg_day, cms_percent_pv, ndt_kg_day, ndt_percent_ms, pb_g_day, pb_percent_ms')
+    .eq('breed_type', breedType)
+    .eq('production_phase', productionPhase)
+    .eq('production_system', system)
+    .order('body_weight_kg', { ascending: true })
+
+  if (!data || data.length === 0) return null
+
+  // Encontrar o peso mais próximo
+  let closest = data[0]
+  let minDiff = Infinity
+  for (const row of data) {
+    const diff = Math.abs((row as any).body_weight_kg - weight)
+    if (diff < minDiff) {
+      minDiff = diff
+      closest = row
+    }
+  }
+  return closest
+}
+
+function getBreedTypeForSim(breedName: string | null): string {
+  if (!breedName) return 'zebuino'
+  const name = breedName.toLowerCase()
+  if (name.startsWith('f1') || name.includes('cruzamento')) return 'cruzado_f1'
+  if (['angus', 'hereford', 'charolês', 'charolais', 'limousin', 'simental'].some(t => name.includes(t))) return 'taurino'
+  return 'zebuino'
 }
 
 export async function POST(request: NextRequest) {
@@ -135,8 +182,23 @@ export async function POST(request: NextRequest) {
     const line = (product.line || '').toLowerCase()
     const arrobaPrice = custom_arroba_price || ARROBA_PRICES.current
 
-    // 1. Custo do suplemento
-    const consumptionKgDay = CONSUMPTION_PER_LINE[line] || 0.1
+    // Buscar dados BR-CORTE para CMS real
+    const breedType = getBreedTypeForSim((herd.breed as any)?.name || null)
+    const isConfinamento = herd.main_phase === 'engorda' && line === 'concentrado'
+    const nutrientReq = await fetchNutrientReqForSimulation(
+      supabase, breedType, herd.avg_weight_kg || 350, herd.main_phase, isConfinamento
+    )
+
+    // 1. Custo do suplemento — usa CMS do BR-CORTE se disponível
+    let consumptionKgDay = CONSUMPTION_PER_LINE[line] || 0.1
+    if (nutrientReq?.cms_kg_day) {
+      // Ajustar consumo de suplemento com base no CMS real
+      if (line === 'concentrado') consumptionKgDay = nutrientReq.cms_kg_day * 0.35
+      else if (line === 'rk') consumptionKgDay = nutrientReq.cms_kg_day * 0.18
+      else if (line === 'fazcarne') consumptionKgDay = nutrientReq.cms_kg_day * 0.12
+      else if (line === 'prot.energ') consumptionKgDay = nutrientReq.cms_kg_day * 0.10
+      else if (line === 'proteico') consumptionKgDay = nutrientReq.cms_kg_day * 0.06
+    }
     const costPerKg = SUPPLEMENT_COST_PER_KG[line] || 3.50
     const dailySupplementCost = consumptionKgDay * costPerKg
 
@@ -316,6 +378,14 @@ export async function POST(request: NextRequest) {
       gross_revenue: saleRevenue,
       net_revenue: netRevenue,
       days_to_target: daysToTarget, projected_weight: projectedWeight,
+      br_corte_data: nutrientReq ? {
+        cms_kg_day: nutrientReq.cms_kg_day,
+        cms_percent_pv: nutrientReq.cms_percent_pv,
+        ndt_percent_ms: nutrientReq.ndt_percent_ms,
+        pb_g_day: nutrientReq.pb_g_day,
+        pb_percent_ms: nutrientReq.pb_percent_ms,
+        source: 'BR-CORTE 4a Ed. (2023)',
+      } : null,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
