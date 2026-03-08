@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import LogoutButton from './logout-button'
 import FarmSection from './farm-section'
 import ClimateWidget from './climate-widget'
+import CopilotPanel from './copilot-panel'
 import InstallPrompt from './install-prompt'
 import Link from 'next/link'
 
@@ -50,6 +51,7 @@ export default async function DashboardPage() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 relative z-10">
         <InstallPrompt />
+        {farm && <CopilotPanel />}
         {farm && <ClimateWidget />}
         <FarmSection farm={farm} herds={herds} totalHeads={totalHeads} userId={user.id} />
       </main>
