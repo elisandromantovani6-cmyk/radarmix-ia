@@ -178,3 +178,27 @@ export const climatePredictSchema = z.object({
     history: z.array(climateHistoryEntrySchema).min(1),
   }),
 })
+
+// === Animal Individual ===
+export const animalSchema = z.object({
+  herd_id: z.string().uuid('ID do lote deve ser um UUID válido'),
+  ear_tag: z.string().min(1, 'Número do brinco é obrigatório').max(50, 'Brinco deve ter no máximo 50 caracteres'),
+  name: z.string().max(100, 'Nome deve ter no máximo 100 caracteres').optional(),
+  breed_id: z.string().uuid('ID da raça deve ser um UUID válido').optional(),
+  sex: z.enum(['macho', 'femea'], { message: 'Sexo deve ser macho ou femea' }),
+  birth_date: z.string().optional(),
+  entry_weight_kg: z.number().min(10, 'Peso mínimo é 10 kg').max(1500, 'Peso máximo é 1500 kg').optional(),
+  notes: z.string().max(500, 'Observações devem ter no máximo 500 caracteres').optional(),
+})
+
+// === Pesagem Individual ===
+export const animalWeighSchema = z.object({
+  weight_kg: z.number().min(10, 'Peso mínimo é 10 kg').max(1500, 'Peso máximo é 1500 kg'),
+  weighed_at: z.string().optional(),
+  notes: z.string().max(200, 'Observações devem ter no máximo 200 caracteres').optional(),
+})
+
+// === Transferência de Animal ===
+export const animalTransferSchema = z.object({
+  to_herd_id: z.string().uuid('ID do lote destino deve ser um UUID válido'),
+})
