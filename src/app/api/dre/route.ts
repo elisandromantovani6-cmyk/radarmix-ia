@@ -77,8 +77,7 @@ export async function GET(request: NextRequest) {
     // Score genético
     const geneticInput: GeneticInput = {
       breed_name: (herd.breed as any)?.name || null,
-      genetic_pattern: (herd as any).genetic_pattern || null,
-      bull_quality: (herd as any).bull_quality || null,
+      genetic_info: (herd as any).genetic_info || null,
       phase: herd.main_phase,
     }
     const geneticScore = calculateGeneticScore(geneticInput, weighingHistoryItems)
@@ -273,8 +272,10 @@ export async function GET(request: NextRequest) {
         final: geneticScore.final_score,
         confidence: geneticScore.confidence,
         weighing_count: geneticScore.weighing_count,
+        gmd_potential: geneticScore.gmd_potential,
         gmd_reference: geneticScore.gmd_reference,
         gmd_adjusted: geneticScore.gmd_adjusted,
+        gmd_by_phase: geneticScore.gmd_by_phase,
         genetic_group: geneticScore.genetic_group,
         carcass_yield: geneticScore.carcass_yield,
       },

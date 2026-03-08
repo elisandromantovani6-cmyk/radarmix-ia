@@ -3,6 +3,85 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import type { GeneticInfo } from '@/lib/genetic-score'
+
+// Componente de botoes de opcao (chips clicaveis)
+function OptionChips({ options, value, onChange }: {
+  options: { value: string; label: string }[]
+  value: string | null
+  onChange: (v: string | null) => void
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(value === opt.value ? null : opt.value)}
+          className={`px-3 py-2 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
+            value === opt.value
+              ? 'bg-orange-600 text-white border border-orange-500'
+              : 'bg-gray-800/60 text-gray-400 border border-white/[0.07] hover:border-orange-500/50'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// Componente de checkbox estilizado
+function CheckBox({ label, checked, onChange }: {
+  label: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm text-left transition-all min-h-[44px] ${
+        checked
+          ? 'bg-orange-600/15 text-orange-400 border border-orange-500/30'
+          : 'bg-gray-800/60 text-gray-400 border border-white/[0.07] hover:border-orange-500/50'
+      }`}
+    >
+      <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${
+        checked ? 'bg-orange-600' : 'bg-gray-700 border border-gray-600'
+      }`}>
+        {checked && <span className="text-white text-xs font-bold">&#10003;</span>}
+      </div>
+      {label}
+    </button>
+  )
+}
+
+// Seletor 3 opcoes inline (Pequeno/Medio/Grande)
+function TripleSelect({ options, value, onChange }: {
+  options: { value: string; label: string }[]
+  value: string | null
+  onChange: (v: string | null) => void
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-1.5">
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(value === opt.value ? null : opt.value)}
+          className={`py-2.5 rounded-lg text-xs font-medium transition-all min-h-[44px] ${
+            value === opt.value
+              ? 'bg-orange-600 text-white'
+              : 'bg-gray-800/60 text-gray-400 border border-white/[0.07] hover:border-orange-500/50'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 export default function CreateHerdModal({ farmId, onClose }: { farmId: string, onClose: () => void }) {
   const [name, setName] = useState('')
@@ -13,14 +92,28 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
   const [breedId, setBreedId] = useState('')
   const [avgWeight, setAvgWeight] = useState('')
   const [sex, setSex] = useState('')
-  const [geneticPattern, setGeneticPattern] = useState('')
-  const [bullQuality, setBullQuality] = useState('')
   const [forages, setForages] = useState<any[]>([])
   const [breeds, setBreeds] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showGenetics, setShowGenetics] = useState(false)
   const supabase = createClient()
   const router = useRouter()
+
+  // Estado genetico (4 perguntas)
+  const [geneticInfo, setGeneticInfo] = useState<GeneticInfo>({
+    origin: null,
+    knows_bull: false,
+    bull_ceip: false,
+    has_dep: false,
+    size: null,
+    uniformity: null,
+    temperament: null,
+  })
+
+  const updateGenetic = <K extends keyof GeneticInfo>(key: K, value: GeneticInfo[K]) => {
+    setGeneticInfo(prev => ({ ...prev, [key]: value }))
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -39,14 +132,21 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
 
     // Calcular completude
     let filled = 0
-    const optionalFields = [forageId, breedId, avgWeight, sex, geneticPattern, bullQuality]
+    const optionalFields = [forageId, breedId, avgWeight, sex]
     optionalFields.forEach(f => { if (f) filled++ })
-    // Base 20% (nome, espécie, cabeças, fase) + opcionais
-    const completeness = Math.min(100, 20 + Math.round((filled / 7) * 80))
+    // Contar campos geneticos preenchidos
+    const gFields = [
+      geneticInfo.origin, geneticInfo.knows_bull, geneticInfo.bull_ceip,
+      geneticInfo.has_dep, geneticInfo.size, geneticInfo.uniformity, geneticInfo.temperament
+    ]
+    gFields.forEach(f => { if (f) filled++ })
+    const completeness = Math.min(100, 20 + Math.round((filled / 11) * 80))
 
-    // TODO: Para salvar genetic_pattern e bull_quality, executar no Supabase:
-    // ALTER TABLE herds ADD COLUMN genetic_pattern text;
-    // ALTER TABLE herds ADD COLUMN bull_quality text;
+    // Montar genetic_info como JSON (so se algo foi preenchido)
+    const hasGeneticData = geneticInfo.origin || geneticInfo.knows_bull ||
+      geneticInfo.bull_ceip || geneticInfo.has_dep ||
+      geneticInfo.size || geneticInfo.uniformity || geneticInfo.temperament
+
     const { error: insertError } = await supabase.from('herds').insert({
       farm_id: farmId,
       name,
@@ -57,8 +157,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
       breed_id: breedId || null,
       avg_weight_kg: avgWeight ? parseFloat(avgWeight) : null,
       sex: sex || null,
-      genetic_pattern: geneticPattern || null,
-      bull_quality: bullQuality || null,
+      genetic_info: hasGeneticData ? geneticInfo : null,
       profile_completeness: completeness,
     })
 
@@ -90,10 +189,10 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
     bovinos_leite: [
       { value: 'cria', label: 'Cria' },
       { value: 'recria', label: 'Recria' },
-      { value: 'lactacao', label: 'Lactação' },
+      { value: 'lactacao', label: 'Lactacao' },
     ],
     bezerros: [{ value: 'cria', label: 'Cria' }],
-    reprodutores: [{ value: 'reproducao', label: 'Reprodução' }],
+    reprodutores: [{ value: 'reproducao', label: 'Reproducao' }],
     aves: [
       { value: 'inicial', label: 'Inicial' },
       { value: 'crescimento', label: 'Crescimento' },
@@ -104,7 +203,6 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
     ovinos: [{ value: 'todas', label: 'Todas as fases' }],
   }
 
-  // Filtrar raças por aptidão baseado na espécie
   const filteredBreeds = breeds.filter(b => {
     if (species === 'bovinos_corte' || species === 'bezerros' || species === 'reprodutores') {
       return b.aptitude === 'corte' || b.aptitude === 'dupla'
@@ -116,12 +214,13 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
   })
 
   const availablePhases = PHASES[species] || []
+  const isBovino = species.startsWith('bovinos') || species === 'bezerros' || species === 'reprodutores'
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 px-0 sm:px-4 modal-sheet" role="dialog" aria-labelledby="create-herd-title">
       <div className="card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl">
         <h3 id="create-herd-title" className="text-xl font-bold mb-1 text-white">Novo Lote</h3>
-        <p className="text-xs text-gray-500 mb-4">Preencha o máximo possível para uma recomendação mais precisa</p>
+        <p className="text-xs text-gray-500 mb-4">Preencha o maximo possivel para uma recomendacao mais precisa</p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           {/* Nome */}
@@ -136,10 +235,10 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
             />
           </div>
 
-          {/* Espécie + Fase (lado a lado) */}
+          {/* Especie + Fase */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Espécie *</label>
+              <label className="block text-sm text-gray-400 mb-1">Especie *</label>
               <select
                 value={species}
                 onChange={(e) => { setSpecies(e.target.value); setMainPhase(''); setBreedId('') }}
@@ -162,10 +261,10 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
             </div>
           </div>
 
-          {/* Cabeças + Peso (lado a lado) */}
+          {/* Cabecas + Peso */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Cabeças *</label>
+              <label className="block text-sm text-gray-400 mb-1">Cabecas *</label>
               <input
                 type="number"
                 value={headCount}
@@ -177,7 +276,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Peso médio (kg)</label>
+              <label className="block text-sm text-gray-400 mb-1">Peso medio (kg)</label>
               <input
                 type="number"
                 value={avgWeight}
@@ -188,9 +287,9 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
             </div>
           </div>
 
-          {/* Raça */}
+          {/* Raca */}
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Raça</label>
+            <label className="block text-sm text-gray-400 mb-1">Raca</label>
             <select
               value={breedId}
               onChange={(e) => setBreedId(e.target.value)}
@@ -201,37 +300,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
             </select>
           </div>
 
-          {/* Padrão genético + Qualidade do touro */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Padrao genetico</label>
-              <select
-                value={geneticPattern}
-                onChange={(e) => setGeneticPattern(e.target.value)}
-                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
-              >
-                <option value="">Nao sei</option>
-                <option value="puro">Puro</option>
-                <option value="cruzamento">Cruzamento industrial</option>
-                <option value="anelorado">Anelorado</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Qualidade do touro</label>
-              <select
-                value={bullQuality}
-                onChange={(e) => setBullQuality(e.target.value)}
-                className="w-full px-3 py-2.5 bg-[#050506] border border-white/[0.07] rounded-xl text-white text-sm focus:border-orange-500 focus:outline-none"
-              >
-                <option value="">Nao sei</option>
-                <option value="ceip">CEIP</option>
-                <option value="provado">Provado</option>
-                <option value="comum">Comum</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Sexo + Capim (lado a lado) */}
+          {/* Sexo + Capim */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm text-gray-400 mb-1">Sexo</label>
@@ -242,7 +311,7 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
               >
                 <option value="">Selecione...</option>
                 <option value="macho">Machos</option>
-                <option value="femea">Fêmeas</option>
+                <option value="femea">Femeas</option>
                 <option value="misto">Misto</option>
               </select>
             </div>
@@ -258,6 +327,114 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
               </select>
             </div>
           </div>
+
+          {/* === SECAO GENETICA (so para bovinos) === */}
+          {isBovino && (
+            <>
+              <button
+                type="button"
+                onClick={() => setShowGenetics(!showGenetics)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-orange-500/10 border border-orange-500/20 rounded-xl text-sm text-orange-400 font-semibold hover:bg-orange-500/15 transition-all"
+              >
+                <span>Genetica do lote (opcional)</span>
+                <span className="text-xs">{showGenetics ? '▲' : '▼'}</span>
+              </button>
+
+              {showGenetics && (
+                <div className="space-y-4 bg-gray-800/30 rounded-xl p-4 border border-white/[0.05]">
+                  {/* Q1: Origem genetica */}
+                  <div>
+                    <p className="text-sm text-gray-300 font-semibold mb-1">1. Qual a origem genetica?</p>
+                    <p className="text-xs text-gray-500 mb-2">Toque para selecionar. Toque de novo para desmarcar.</p>
+                    <OptionChips
+                      options={[
+                        { value: 'po', label: 'PO' },
+                        { value: 'la', label: 'LA' },
+                        { value: 'cruzamento_industrial', label: 'Cruzamento Industrial' },
+                        { value: 'f1', label: 'F1' },
+                        { value: 'meio_sangue', label: 'Meio-sangue' },
+                        { value: 'composto', label: 'Composto' },
+                      ]}
+                      value={geneticInfo.origin}
+                      onChange={(v) => updateGenetic('origin', v)}
+                    />
+                  </div>
+
+                  {/* Q2: Sobre o touro */}
+                  <div>
+                    <p className="text-sm text-gray-300 font-semibold mb-2">2. Sobre o touro</p>
+                    <div className="space-y-2">
+                      <CheckBox
+                        label="Sei quem e o touro"
+                        checked={geneticInfo.knows_bull}
+                        onChange={(v) => updateGenetic('knows_bull', v)}
+                      />
+                      <CheckBox
+                        label="Touro e CEIP"
+                        checked={geneticInfo.bull_ceip}
+                        onChange={(v) => updateGenetic('bull_ceip', v)}
+                      />
+                      <CheckBox
+                        label="Tem DEP (Diferenca Esperada de Progenie)"
+                        checked={geneticInfo.has_dep}
+                        onChange={(v) => updateGenetic('has_dep', v)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Q3: Fenotipos */}
+                  <div>
+                    <p className="text-sm text-gray-300 font-semibold mb-3">3. Avaliacao visual do lote</p>
+
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-gray-400 mb-1.5">Porte</p>
+                        <TripleSelect
+                          options={[
+                            { value: 'pequeno', label: 'Pequeno' },
+                            { value: 'medio', label: 'Medio' },
+                            { value: 'grande', label: 'Grande' },
+                          ]}
+                          value={geneticInfo.size}
+                          onChange={(v) => updateGenetic('size', v)}
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-gray-400 mb-1.5">Uniformidade</p>
+                        <TripleSelect
+                          options={[
+                            { value: 'baixa', label: 'Baixa' },
+                            { value: 'media', label: 'Media' },
+                            { value: 'alta', label: 'Alta' },
+                          ]}
+                          value={geneticInfo.uniformity}
+                          onChange={(v) => updateGenetic('uniformity', v)}
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-gray-400 mb-1.5">Temperamento</p>
+                        <TripleSelect
+                          options={[
+                            { value: 'manso', label: 'Manso' },
+                            { value: 'medio', label: 'Medio' },
+                            { value: 'arredio', label: 'Arredio' },
+                          ]}
+                          value={geneticInfo.temperament}
+                          onChange={(v) => updateGenetic('temperament', v)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-gray-600 text-center">
+                    A IA calcula o Score Genetico automaticamente
+                  </p>
+                </div>
+              )}
+            </>
+          )}
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
@@ -282,4 +459,3 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
     </div>
   )
 }
-

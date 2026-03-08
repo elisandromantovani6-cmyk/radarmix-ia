@@ -215,6 +215,9 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
                 confidence={result.genetic_score.confidence}
                 weighing_count={result.genetic_score.weighing_count}
                 genetic_group={result.genetic_score.genetic_group}
+                gmd_potential={result.genetic_score.gmd_potential || 'medio'}
+                gmd_adjusted={result.genetic_score.gmd_adjusted}
+                gmd_by_phase={result.genetic_score.gmd_by_phase}
               />
               <details className="bg-gray-800/30 rounded-xl p-4">
                 <summary className="text-xs text-gray-500 font-semibold uppercase cursor-pointer">Detalhes do score genetico</summary>
