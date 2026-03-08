@@ -53,12 +53,12 @@ describe('emptyGeneticInfo', () => {
 })
 
 describe('calculateDeclaredScore', () => {
-  it('retorna score base da raca quando sem genetic_info', () => {
+  it('retorna score base da raça quando sem genetic_info', () => {
     const input: GeneticInput = { breed_name: 'Nelore', genetic_info: null, phase: 'recria' }
     expect(calculateDeclaredScore(input)).toBe(50)
   })
 
-  it('retorna 50 para raca desconhecida', () => {
+  it('retorna 50 para raça desconhecida', () => {
     const input: GeneticInput = { breed_name: 'Desconhecida', genetic_info: null, phase: 'recria' }
     expect(calculateDeclaredScore(input)).toBe(50)
   })
@@ -180,7 +180,7 @@ describe('calculateDeclaredScore', () => {
     expect(calculateDeclaredScore(input)).toBe(42)
   })
 
-  it('cenario completo: PO + CEIP + DEP + grande + alta + manso -> clamp 100', () => {
+  it('cenário completo: PO + CEIP + DEP + grande + alta + manso -> clamp 100', () => {
     const input: GeneticInput = {
       breed_name: 'Nelore',
       genetic_info: makeInfo({
@@ -193,7 +193,7 @@ describe('calculateDeclaredScore', () => {
     expect(calculateDeclaredScore(input)).toBe(100)
   })
 
-  it('cenario ruim: pequeno + baixa + arredio', () => {
+  it('cenário ruim: pequeno + baixa + arredio', () => {
     const input: GeneticInput = {
       breed_name: 'Nelore',
       genetic_info: makeInfo({
@@ -205,7 +205,7 @@ describe('calculateDeclaredScore', () => {
     expect(calculateDeclaredScore(input)).toBe(32)
   })
 
-  it('raca nula sem genetic_info -> 50', () => {
+  it('raça nula sem genetic_info -> 50', () => {
     const input: GeneticInput = { breed_name: null, genetic_info: null, phase: 'recria' }
     expect(calculateDeclaredScore(input)).toBe(50)
   })
@@ -220,22 +220,22 @@ describe('calculateLearnedScore', () => {
     expect(calculateLearnedScore([{ gmd_real: 0.5, date: '2026-01-01' }], 0)).toBeNull()
   })
 
-  it('retorna 50 quando GMD real = referencia', () => {
+  it('retorna 50 quando GMD real = referência', () => {
     const w: WeighingHistory[] = [{ gmd_real: 0.55, date: '2026-01-01' }]
     expect(calculateLearnedScore(w, 0.55)).toBe(50)
   })
 
-  it('retorna 75 quando GMD real = 1.5x referencia', () => {
+  it('retorna 75 quando GMD real = 1.5x referência', () => {
     const w: WeighingHistory[] = [{ gmd_real: 0.825, date: '2026-01-01' }]
     expect(calculateLearnedScore(w, 0.55)).toBeCloseTo(75, 0)
   })
 
-  it('clamp 100 quando GMD real >= 2x referencia', () => {
+  it('clamp 100 quando GMD real >= 2x referência', () => {
     const w: WeighingHistory[] = [{ gmd_real: 1.2, date: '2026-01-01' }]
     expect(calculateLearnedScore(w, 0.55)).toBe(100)
   })
 
-  it('calcula media de multiplas pesagens', () => {
+  it('calcula média de múltiplas pesagens', () => {
     const w: WeighingHistory[] = [
       { gmd_real: 0.50, date: '2026-01-01' },
       { gmd_real: 0.60, date: '2026-02-01' },

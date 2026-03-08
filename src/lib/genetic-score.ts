@@ -1,30 +1,30 @@
 // ============================================================================
-// Sistema de Score Genetico com Auto-Learning — v2
+// Sistema de Score Genético com Auto-Learning — v2
 // ============================================================================
 // 4 perguntas por clique (sem digitar nada):
 //
-// Q1: Origem genetica
-//     Nao sei / PO / LA / Cruzamento Industrial / F1 / Meio-sangue / Composto
+// Q1: Origem genética
+//     Não sei / PO / LA / Cruzamento Industrial / F1 / Meio-sangue / Composto
 //
 // Q2: Sobre o touro (checkboxes)
-//     Sei quem e o touro / Touro e CEIP / Tem DEP
+//     Sei quem é o touro / Touro é CEIP / Tem DEP
 //
-// Q3: Fenotipos observados
-//     Porte (Pequeno-Medio-Grande)
-//     Uniformidade (Baixa-Media-Alta)
-//     Temperamento (Manso-Medio-Arredio)
+// Q3: Fenótipos observados
+//     Porte (Pequeno-Médio-Grande)
+//     Uniformidade (Baixa-Média-Alta)
+//     Temperamento (Manso-Médio-Arredio)
 //
 // Q4: IA calcula automaticamente
-//     Score 0-100, Potencial GMD, GMD referencia por fase
+//     Score 0-100, Potencial GMD, GMD referência por fase
 //
-// Auto-learning: pesagens reais sobrepoe o score declarado
-// 0 pesagens: 100% declarado -> Confianca 30%
-// 1 pesagem:  70/30         -> Confianca 42%
-// 3 pesagens: 40/60         -> Confianca 66%
-// 5+ pesagens: 20/80        -> Confianca 90%
+// Auto-learning: pesagens reais sobrepõe o score declarado
+// 0 pesagens: 100% declarado -> Confiança 30%
+// 1 pesagem:  70/30         -> Confiança 42%
+// 3 pesagens: 40/60         -> Confiança 66%
+// 5+ pesagens: 20/80        -> Confiança 90%
 // ============================================================================
 
-// GMD de referencia por raca e fase (dados Embrapa/ABCZ) - kg/dia
+// GMD de referência por raça e fase (dados Embrapa/ABCZ) - kg/dia
 const BREED_GMD_REFERENCE: Record<string, Record<string, number>> = {
   // Zebuinos
   'nelore': { cria: 0.35, recria: 0.55, engorda: 0.75, confinamento: 1.20 },
@@ -52,7 +52,7 @@ const BREED_GMD_REFERENCE: Record<string, Record<string, number>> = {
   'default': { cria: 0.35, recria: 0.50, engorda: 0.70, confinamento: 1.10 },
 }
 
-// Rendimento de carcaca por grupo genetico
+// Rendimento de carcaça por grupo genético
 const CARCASS_YIELD: Record<string, number> = {
   'zebuino': 0.52,
   'taurino': 0.56,
@@ -61,7 +61,7 @@ const CARCASS_YIELD: Record<string, number> = {
   'default': 0.52,
 }
 
-// Tolerancia ao calor (impacto no ITU)
+// Tolerância ao calor (impacto no ITU)
 const HEAT_TOLERANCE: Record<string, number> = {
   'zebuino': 1.0,
   'cruzamento': 0.92,
@@ -71,7 +71,7 @@ const HEAT_TOLERANCE: Record<string, number> = {
   'default': 1.0,
 }
 
-// Score base por raca (0-100) para calculo do score declarado
+// Score base por raça (0-100) para cálculo do score declarado
 const BREED_BASE_SCORE: Record<string, number> = {
   'nelore': 50, 'tabapua': 45, 'guzera': 43, 'brahman': 55,
   'angus': 80, 'hereford': 75, 'charolais': 82, 'limousin': 78,
@@ -81,27 +81,27 @@ const BREED_BASE_SCORE: Record<string, number> = {
   'girolando': 38, 'jersey': 35, 'holandesa': 40,
 }
 
-// === PONTUACAO POR PERGUNTA ===
+// === PONTUAÇÃO POR PERGUNTA ===
 
-// Q1: Origem genetica
+// Q1: Origem genética
 const ORIGIN_SCORE: Record<string, number> = {
-  'po': 15,                    // PO - Puro de Origem, registro genealogico
+  'po': 15,                    // PO - Puro de Origem, registro genealógico
   'la': 10,                    // LA - Livro Aberto
   'cruzamento_industrial': 12, // Heterose programada
   'f1': 10,                    // Primeiro cruzamento, max heterose
   'meio_sangue': 5,            // Meio-sangue, sem controle
-  'composto': 8,               // Raca composta (Montana, Canchim)
+  'composto': 8,               // Raça composta (Montana, Canchim)
 }
-// 'nao_sei' / null = +0
+// 'não_sei' / null = +0
 
 // Q2: Touro (checkboxes, cumulativos)
 const BULL_SCORE = {
-  knows_bull: 5,   // Sabe quem e o touro
+  knows_bull: 5,   // Sabe quem é o touro
   bull_ceip: 15,   // Touro com CEIP
-  has_dep: 10,     // Tem DEP (diferenca esperada de progenie)
+  has_dep: 10,     // Tem DEP (diferença esperada de progênie)
 }
 
-// Q3: Fenotipos observados
+// Q3: Fenótipos observados
 const SIZE_SCORE: Record<string, number> = {
   'pequeno': -5,
   'medio': 0,
@@ -115,7 +115,7 @@ const UNIFORMITY_SCORE: Record<string, number> = {
 }
 
 const TEMPERAMENT_SCORE: Record<string, number> = {
-  'manso': 5,    // Docil = melhor manejo = melhor GMD
+  'manso': 5,    // Dócil = melhor manejo = melhor GMD
   'medio': 0,
   'arredio': -8, // Stress = menor GMD
 }
@@ -139,14 +139,14 @@ export interface GeneticInfo {
   knows_bull: boolean
   bull_ceip: boolean
   has_dep: boolean
-  // Q3: Fenotipos
+  // Q3: Fenótipos
   size: string | null            // 'pequeno' | 'medio' | 'grande' | null
   uniformity: string | null      // 'baixa' | 'media' | 'alta' | null
   temperament: string | null     // 'manso' | 'medio' | 'arredio' | null
 }
 
 export interface GeneticInput {
-  breed_name: string | null        // nome da raca (do banco)
+  breed_name: string | null        // nome da raça (do banco)
   genetic_info: GeneticInfo | null // dados das 4 perguntas
   phase: string                    // 'cria' | 'recria' | 'engorda'
 }
@@ -162,21 +162,21 @@ export interface GeneticScore {
   declared_score: number        // 0-100 baseado no que declarou
   learned_score: number | null  // 0-100 baseado nas pesagens (null se sem pesagem)
   final_score: number           // 0-100 combinado
-  confidence: number            // 0-100 confianca no score
+  confidence: number            // 0-100 confiança no score
   weighing_count: number
-  gmd_potential: GmdPotential   // classificacao do potencial
-  gmd_reference: number         // GMD esperado para a raca/fase
+  gmd_potential: GmdPotential   // classificação do potencial
+  gmd_reference: number         // GMD esperado para a raça/fase
   gmd_by_phase: { recria: number; engorda: number; confinamento: number }
   gmd_adjusted: number          // GMD ajustado pelo score genetico
-  carcass_yield: number         // rendimento de carcaca ajustado
-  heat_tolerance: number        // fator de tolerancia ao calor
+  carcass_yield: number         // rendimento de carcaça ajustado
+  heat_tolerance: number        // fator de tolerância ao calor
   genetic_group: string         // 'zebuino' | 'taurino' | 'cruzamento' | 'leite'
 }
 
-// === FUNCOES INTERNAS ===
+// === FUNÇÕES INTERNAS ===
 
 /**
- * Normaliza o nome da raca para lookup nas tabelas de referencia.
+ * Normaliza o nome da raça para lookup nas tabelas de referência.
  */
 function normalizeBreedName(name: string | null): string {
   if (!name) return 'default'
@@ -203,22 +203,22 @@ export function classifyGmdPotential(score: number): GmdPotential {
   return 'baixo'
 }
 
-// === FUNCOES EXPORTADAS ===
+// === FUNÇÕES EXPORTADAS ===
 
 /**
- * Funcao 1: Calcular score declarado (0-100)
- * Soma: base da raca + Q1 (origem) + Q2 (touro) + Q3 (fenotipos)
+ * Função 1: Calcular score declarado (0-100)
+ * Soma: base da raça + Q1 (origem) + Q2 (touro) + Q3 (fenótipos)
  */
 export function calculateDeclaredScore(input: GeneticInput): number {
   const breedKey = normalizeBreedName(input.breed_name)
 
-  // Base da raca
+  // Base da raça
   let score = BREED_BASE_SCORE[breedKey] ?? 50
 
   if (input.genetic_info) {
     const info = input.genetic_info
 
-    // Q1: Origem genetica
+    // Q1: Origem genética
     if (info.origin) {
       score += ORIGIN_SCORE[info.origin] ?? 0
     }
@@ -228,7 +228,7 @@ export function calculateDeclaredScore(input: GeneticInput): number {
     if (info.bull_ceip) score += BULL_SCORE.bull_ceip
     if (info.has_dep) score += BULL_SCORE.has_dep
 
-    // Q3: Fenotipos
+    // Q3: Fenótipos
     if (info.size) score += SIZE_SCORE[info.size] ?? 0
     if (info.uniformity) score += UNIFORMITY_SCORE[info.uniformity] ?? 0
     if (info.temperament) score += TEMPERAMENT_SCORE[info.temperament] ?? 0
@@ -238,8 +238,8 @@ export function calculateDeclaredScore(input: GeneticInput): number {
 }
 
 /**
- * Funcao 2: Calcular score aprendido (das pesagens)
- * Compara o GMD real com o GMD de referencia da raca.
+ * Função 2: Calcular score aprendido (das pesagens)
+ * Compara o GMD real com o GMD de referência da raça.
  */
 export function calculateLearnedScore(
   weighings: WeighingHistory[],
@@ -257,7 +257,7 @@ export function calculateLearnedScore(
 }
 
 /**
- * Funcao 3: Calcular score final combinado
+ * Função 3: Calcular score final combinado
  */
 export function calculateGeneticScore(
   input: GeneticInput,
@@ -318,7 +318,7 @@ export function calculateGeneticScore(
 }
 
 /**
- * Funcao 4: Determinar grupo genetico
+ * Função 4: Determinar grupo genético
  */
 export function getGeneticGroup(breed_name: string | null): string {
   if (!breed_name) return 'zebuino'
@@ -345,7 +345,7 @@ export function getGeneticGroup(breed_name: string | null): string {
 }
 
 /**
- * Funcao 5: Obter GMD de referencia para raca/fase
+ * Função 5: Obter GMD de referência para raça/fase
  */
 export function getReferenceGmd(breed_name: string | null, phase: string): number {
   const breedKey = normalizeBreedName(breed_name)
@@ -354,7 +354,7 @@ export function getReferenceGmd(breed_name: string | null, phase: string): numbe
 }
 
 /**
- * Cria um GeneticInfo vazio (tudo null/false) para quando o produtor nao responde
+ * Cria um GeneticInfo vazio (tudo null/false) para quando o produtor não responde
  */
 export function emptyGeneticInfo(): GeneticInfo {
   return {

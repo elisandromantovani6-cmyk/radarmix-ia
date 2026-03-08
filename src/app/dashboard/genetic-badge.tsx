@@ -18,7 +18,7 @@ export default function GeneticBadge({
 }: GeneticBadgeProps) {
   const potentialConfig: Record<GmdPotential, { label: string; color: string; bg: string; border: string }> = {
     baixo: { label: 'Baixo', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-    medio: { label: 'Medio', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
+    medio: { label: 'Médio', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
     alto: { label: 'Alto', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
     elite: { label: 'Elite', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
   }
@@ -33,7 +33,7 @@ export default function GeneticBadge({
   }
 
   const groupLabels: Record<string, string> = {
-    zebuino: 'Zebuino',
+    zebuino: 'Zebuíno',
     taurino: 'Taurino',
     cruzamento: 'Cruzamento',
     leite: 'Leite',
@@ -58,7 +58,7 @@ export default function GeneticBadge({
         <div className="flex items-center gap-2">
           <span className="text-lg">{icon}</span>
           <div>
-            <span className="text-xs text-gray-400 uppercase font-semibold">Score Genetico</span>
+            <span className="text-xs text-gray-400 uppercase font-semibold">Score Genético</span>
             <span className="text-xs text-gray-600 ml-2">{label}</span>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function GeneticBadge({
             {Math.round(score)}
           </span>
           <span className="text-xs text-gray-500">
-            Confianca: {Math.round(confidence)}%
+            Confiança: {Math.round(confidence)}%
           </span>
         </div>
         <div className="h-2.5 bg-gray-700 rounded-full overflow-hidden">
@@ -118,7 +118,7 @@ export default function GeneticBadge({
       <p className="text-xs text-gray-600">
         {weighing_count > 0
           ? `Baseado em ${weighing_count} pesagem${weighing_count > 1 ? 's' : ''} reais`
-          : 'Baseado no cadastro — pese para aumentar a precisao'}
+          : 'Baseado no cadastro — pese para aumentar a precisão'}
       </p>
     </div>
   )

@@ -1,5 +1,5 @@
 /**
- * Rate Limiter em memoria para proteger rotas que chamam a API do Claude (Anthropic).
+ * Rate Limiter em memória para proteger rotas que chamam a API do Claude (Anthropic).
  *
  * Funciona com um Map que conta requests por userId dentro de uma janela de tempo.
  * Limpa automaticamente entradas expiradas a cada 5 minutos.
@@ -26,10 +26,10 @@ export const RATE_LIMITS = {
 } as const
 
 /**
- * Verifica se o usuario pode fazer mais uma request.
+ * Verifica se o usuário pode fazer mais uma request.
  *
- * @param userId - ID do usuario (do Supabase auth)
- * @param limit - Maximo de requests na janela (default: 20)
+ * @param userId - ID do usuário (do Supabase auth)
+ * @param limit - Máximo de requests na janela (default: 20)
  * @param windowMs - Tamanho da janela em milissegundos (default: 1 hora)
  * @returns Objeto com allowed, remaining e resetIn
  */
@@ -43,7 +43,7 @@ export function checkRateLimit(
 
   const entry = rateLimitMap.get(key)
 
-  // Se nao tem entrada ou a janela expirou, cria nova
+  // Se não tem entrada ou a janela expirou, cria nova
   if (!entry || (now - entry.windowStart) >= windowMs) {
     rateLimitMap.set(key, { count: 1, windowStart: now })
     return {
@@ -74,7 +74,7 @@ export function checkRateLimit(
   }
 }
 
-// Limpeza automatica de entradas expiradas a cada 5 minutos
+// Limpeza automática de entradas expiradas a cada 5 minutos
 const CLEANUP_INTERVAL = 5 * 60 * 1000
 
 setInterval(() => {
@@ -89,7 +89,7 @@ setInterval(() => {
   }
 }, CLEANUP_INTERVAL)
 
-// Evitar que o setInterval impeca o processo de encerrar
+// Evitar que o setInterval impeça o processo de encerrar
 if (typeof globalThis !== 'undefined' && typeof (globalThis as any)[Symbol.for('rateLimitCleanup')] === 'undefined') {
   (globalThis as any)[Symbol.for('rateLimitCleanup')] = true
 }

@@ -160,19 +160,19 @@ function createMockSupabase(config: {
 // ============================================================================
 
 describe('analyzeForageDeficits', () => {
-  it('detecta todos os deficits na seca com forrageira pobre', () => {
+  it('detecta todos os déficits na seca com forrageira pobre', () => {
     const forage = makeForage()
     const deficits = analyzeForageDeficits(forage, 'seca')
 
-    expect(deficits).toContain('Proteina bruta baixa (4% PB)')
+    expect(deficits).toContain('Proteína bruta baixa (4% PB)')
     expect(deficits).toContain('Energia baixa (45% NDT)')
-    expect(deficits).toContain('Fosforo deficiente')
-    expect(deficits).toContain('Sodio deficiente')
-    expect(deficits).toContain('Calcio baixo')
+    expect(deficits).toContain('Fósforo deficiente')
+    expect(deficits).toContain('Sódio deficiente')
+    expect(deficits).toContain('Cálcio baixo')
     expect(deficits).toContain('Zinco deficiente')
   })
 
-  it('nao detecta deficits nas aguas com forrageira boa', () => {
+  it('não detecta déficits nas águas com forrageira boa', () => {
     const forage = makeForage()
     const deficits = analyzeForageDeficits(forage, 'aguas')
 
@@ -180,7 +180,7 @@ describe('analyzeForageDeficits', () => {
     expect(deficits).toHaveLength(0)
   })
 
-  it('adiciona mensagem generica na seca quando forrageira nao tem deficits', () => {
+  it('adiciona mensagem genérica na seca quando forrageira não tem déficits', () => {
     const forage = makeForage({
       dry_pb_percent: 10,
       dry_ndt_percent: 55,
@@ -212,7 +212,7 @@ describe('analyzeForageDeficits', () => {
     expect(deficits[0]).toBe('Forragem com qualidade reduzida na seca')
   })
 
-  it('detecta deficit parcial (apenas fosforo e sodio)', () => {
+  it('detecta déficit parcial (apenas fósforo e sódio)', () => {
     const forage = makeForage({
       dry_pb_percent: 10,   // OK
       dry_ndt_percent: 55,  // OK
@@ -223,9 +223,9 @@ describe('analyzeForageDeficits', () => {
     })
     const deficits = analyzeForageDeficits(forage, 'seca')
 
-    expect(deficits).toContain('Fosforo deficiente')
-    expect(deficits).toContain('Sodio deficiente')
-    expect(deficits).not.toContain('Proteina bruta baixa')
+    expect(deficits).toContain('Fósforo deficiente')
+    expect(deficits).toContain('Sódio deficiente')
+    expect(deficits).not.toContain('Proteína bruta baixa')
     expect(deficits).not.toContain('Forragem com qualidade reduzida na seca')
   })
 })
@@ -235,35 +235,35 @@ describe('analyzeForageDeficits', () => {
 // ============================================================================
 
 describe('checkMineralMatch', () => {
-  it('retorna score 0 quando nao ha deficits', () => {
+  it('retorna score 0 quando não há déficits', () => {
     const product = makeProduct()
     const result = checkMineralMatch(product, [])
     expect(result.score).toBe(0)
     expect(result.reasons).toHaveLength(0)
   })
 
-  it('pontua corretamente deficit de fosforo', () => {
+  it('pontua corretamente déficit de fósforo', () => {
     const product = makeProduct({ p_g_kg: 50 })
-    const result = checkMineralMatch(product, ['Fosforo deficiente'])
+    const result = checkMineralMatch(product, ['Fósforo deficiente'])
     expect(result.score).toBe(8)
-    expect(result.reasons).toContainEqual(expect.stringContaining('fosforo'))
+    expect(result.reasons).toContainEqual(expect.stringContaining('fósforo'))
   })
 
-  it('pontua corretamente deficit de proteina', () => {
+  it('pontua corretamente déficit de proteína', () => {
     const product = makeProduct({ pb_percent: 25 })
-    const result = checkMineralMatch(product, ['Proteina bruta baixa (4% PB)'])
+    const result = checkMineralMatch(product, ['Proteína bruta baixa (4% PB)'])
     expect(result.score).toBe(12)
-    expect(result.reasons).toContainEqual(expect.stringContaining('proteina'))
+    expect(result.reasons).toContainEqual(expect.stringContaining('proteína'))
   })
 
-  it('pontua corretamente deficit de energia', () => {
+  it('pontua corretamente déficit de energia', () => {
     const product = makeProduct({ ndt_percent: 60 })
     const result = checkMineralMatch(product, ['Energia baixa (45% NDT)'])
     expect(result.score).toBe(10)
     expect(result.reasons).toContainEqual(expect.stringContaining('energia'))
   })
 
-  it('acumula pontuacao de multiplos deficits', () => {
+  it('acumula pontuação de múltiplos déficits', () => {
     const product = makeProduct({
       p_g_kg: 50,
       na_g_kg: 60,
@@ -273,10 +273,10 @@ describe('checkMineralMatch', () => {
       zn_mg_kg: 3000,
     })
     const deficits = [
-      'Fosforo deficiente',
-      'Sodio deficiente',
-      'Calcio baixo',
-      'Proteina bruta baixa (4% PB)',
+      'Fósforo deficiente',
+      'Sódio deficiente',
+      'Cálcio baixo',
+      'Proteína bruta baixa (4% PB)',
       'Energia baixa (45% NDT)',
       'Zinco deficiente',
     ]
@@ -287,9 +287,9 @@ describe('checkMineralMatch', () => {
     expect(result.reasons.length).toBe(6)
   })
 
-  it('nao pontua quando produto nao corrige o deficit', () => {
+  it('não pontua quando produto não corrige o déficit', () => {
     const product = makeProduct({ p_g_kg: 10 }) // abaixo do threshold de 40
-    const result = checkMineralMatch(product, ['Fosforo deficiente'])
+    const result = checkMineralMatch(product, ['Fósforo deficiente'])
     expect(result.score).toBe(0)
     expect(result.reasons).toHaveLength(0)
   })
@@ -308,11 +308,11 @@ describe('matchPhase', () => {
     expect(matchPhase(makeProduct({ name: 'Bezerro Top' }), 'cria')).toBe(true)
   })
 
-  it('fase cria: match generico por linha S', () => {
+  it('fase cria: match genérico por linha S', () => {
     expect(matchPhase(makeProduct({ name: 'Mineral X', line: 'S' }), 'cria')).toBe(true)
   })
 
-  it('fase cria: match generico por linha SR', () => {
+  it('fase cria: match genérico por linha SR', () => {
     expect(matchPhase(makeProduct({ name: 'Mineral X', line: 'SR' }), 'cria')).toBe(true)
   })
 
@@ -352,7 +352,7 @@ describe('matchPhase', () => {
     expect(matchPhase(makeProduct({ name: 'X', line: 'Leite Premium' }), 'lactacao')).toBe(true)
   })
 
-  it('fase reproducao: match por nome contendo "reproduc"', () => {
+  it('fase reprodução: match por nome contendo "reproduc"', () => {
     expect(matchPhase(makeProduct({ name: 'Reproducao Max' }), 'reproducao')).toBe(true)
   })
 
@@ -361,7 +361,7 @@ describe('matchPhase', () => {
   })
 
   it('retorna false para fase desconhecida', () => {
-    expect(matchPhase(makeProduct({ name: 'Mineral Cria', line: 'S' }), 'manutencao')).toBe(false)
+    expect(matchPhase(makeProduct({ name: 'Mineral Cria', line: 'S' }), 'manutencao')).toBe(false) // manutencao is a DB value, not user-facing
   })
 })
 
@@ -378,19 +378,19 @@ describe('mapPhaseToFactor', () => {
     expect(mapPhaseToFactor('recria')).toBe('recria')
   })
 
-  it('mapeia engorda -> terminacao', () => {
+  it('mapeia engorda -> terminação', () => {
     expect(mapPhaseToFactor('engorda')).toBe('terminacao')
   })
 
-  it('mapeia lactacao -> lactacao', () => {
+  it('mapeia lactação -> lactação', () => {
     expect(mapPhaseToFactor('lactacao')).toBe('lactacao')
   })
 
-  it('mapeia reproducao -> reproducao', () => {
+  it('mapeia reprodução -> reprodução', () => {
     expect(mapPhaseToFactor('reproducao')).toBe('reproducao')
   })
 
-  it('retorna a propria fase quando nao mapeada', () => {
+  it('retorna a própria fase quando não mapeada', () => {
     expect(mapPhaseToFactor('manutencao')).toBe('manutencao')
   })
 })
@@ -402,7 +402,7 @@ describe('mapPhaseToFactor', () => {
 describe('estimateConsumption', () => {
   const herdBase = makeHerd()
 
-  it('mineral padrao (S/SR) = 80g base', () => {
+  it('mineral padrão (S/SR) = 80g base', () => {
     const product = makeProduct({ line: 'S' })
     const result = estimateConsumption(product, herdBase, null)
     expect(result).toBe(80)
@@ -444,7 +444,7 @@ describe('estimateConsumption', () => {
     expect(result).toBe(2000)
   })
 
-  it('aplica multiplicador de raca', () => {
+  it('aplica multiplicador de raça', () => {
     const product = makeProduct({ line: 'Proteico' })
     const breedFactor = { cms_multiplier: 1.2 }
     const result = estimateConsumption(product, herdBase, breedFactor)
@@ -458,14 +458,14 @@ describe('estimateConsumption', () => {
     expect(result).toBe(Math.round(500 * 1.1)) // 550
   })
 
-  it('nao aplica ajuste de peso para animais com 400kg ou menos', () => {
+  it('não aplica ajuste de peso para animais com 400kg ou menos', () => {
     const product = makeProduct({ line: 'Proteico' })
     const lightHerd = makeHerd({ avg_weight_kg: 400 })
     const result = estimateConsumption(product, lightHerd, null)
     expect(result).toBe(500)
   })
 
-  it('aplica ambos multiplicadores (raca + peso)', () => {
+  it('aplica ambos multiplicadores (raça + peso)', () => {
     const product = makeProduct({ line: 'Proteico' })
     const heavyHerd = makeHerd({ avg_weight_kg: 500 })
     const breedFactor = { cms_multiplier: 1.2 }
@@ -474,7 +474,7 @@ describe('estimateConsumption', () => {
     expect(result).toBe(Math.round(Math.round(500 * 1.2) * 1.1))
   })
 
-  it('linha desconhecida usa base 100g (mineral padrao)', () => {
+  it('linha desconhecida usa base 100g (mineral padrão)', () => {
     const product = makeProduct({ line: 'Outra' })
     const result = estimateConsumption(product, herdBase, null)
     expect(result).toBe(100)
@@ -486,35 +486,35 @@ describe('estimateConsumption', () => {
 // ============================================================================
 
 describe('generateExplanation', () => {
-  it('gera explicacao basica com nome do lote', () => {
+  it('gera explicação básica com nome do lote', () => {
     const rec = makeRecommendation()
     const text = generateExplanation(rec, 'Lote A')
 
-    expect(text).toContain('RECOMENDACAO PARA LOTE A')
+    expect(text).toContain('RECOMENDAÇÃO PARA LOTE A')
     expect(text).toContain('Produto recomendado: Mineral SR')
     expect(text).toContain('Linha: SR')
     expect(text).toContain('Consumo estimado: 0.1 kg/cab/dia')
   })
 
-  it('inclui deficits quando presentes', () => {
+  it('inclui déficits quando presentes', () => {
     const rec = makeRecommendation({
-      deficits: ['Fosforo deficiente', 'Sodio deficiente'],
+      deficits: ['Fósforo deficiente', 'Sódio deficiente'],
     })
     const text = generateExplanation(rec, 'Lote B')
 
-    expect(text).toContain('Deficits identificados na forrageira:')
-    expect(text).toContain('  - Fosforo deficiente')
-    expect(text).toContain('  - Sodio deficiente')
+    expect(text).toContain('Déficits identificados na forrageira:')
+    expect(text).toContain('  - Fósforo deficiente')
+    expect(text).toContain('  - Sódio deficiente')
   })
 
-  it('nao inclui secao de deficits quando vazia', () => {
+  it('não inclui seção de déficits quando vazia', () => {
     const rec = makeRecommendation({ deficits: [] })
     const text = generateExplanation(rec, 'Lote C')
 
-    expect(text).not.toContain('Deficits identificados')
+    expect(text).not.toContain('Déficits identificados')
   })
 
-  it('inclui razoes quando presentes', () => {
+  it('inclui razões quando presentes', () => {
     const rec = makeRecommendation({
       reasons: ['Indicado para fase de recria', 'Alto teor proteico (25% PB)'],
     })
@@ -535,18 +535,18 @@ describe('generateExplanation', () => {
 })
 
 // ============================================================================
-// TESTES: generateRecommendation (integracao com mock de Supabase)
+// TESTES: generateRecommendation (integração com mock de Supabase)
 // ============================================================================
 
 describe('generateRecommendation', () => {
-  it('retorna null quando nao ha produtos compativeis', async () => {
+  it('retorna null quando não há produtos compatíveis', async () => {
     const supabase = createMockSupabase({ products: [] })
     const herd = makeHerd()
     const result = await generateRecommendation(supabase, herd)
     expect(result).toBeNull()
   })
 
-  it('retorna recomendacao com produto quando disponivel', async () => {
+  it('retorna recomendação com produto quando disponível', async () => {
     const products = [
       makeProduct({ name: 'Mineral Recria', line: 'SR', priority_score: 60 }),
     ]
@@ -561,7 +561,7 @@ describe('generateRecommendation', () => {
     expect(result!.consumption_kg_day).toBeGreaterThan(0)
   })
 
-  it('prioriza produto com match de fase sobre generico', async () => {
+  it('prioriza produto com match de fase sobre genérico', async () => {
     const products = [
       makeProduct({ id: 'p1', name: 'Mineral Generico', line: 'X', priority_score: 50 }),
       makeProduct({ id: 'p2', name: 'Engorda Total', line: 'FazCarne', priority_score: 50 }),
@@ -576,8 +576,8 @@ describe('generateRecommendation', () => {
     expect(result!.score).toBeGreaterThan(50)
   })
 
-  it('considera forrageira com deficits para pontuar produto', async () => {
-    // Forrageira com deficits em AMBAS as epocas para garantir o teste
+  it('considera forrageira com déficits para pontuar produto', async () => {
+    // Forrageira com déficits em AMBAS as épocas para garantir o teste
     const forage = makeForage({
       dry_pb_percent: 3,
       dry_ndt_percent: 40,
@@ -604,22 +604,22 @@ describe('generateRecommendation', () => {
     const result = await generateRecommendation(supabase, herd)
 
     expect(result).not.toBeNull()
-    // Independente da epoca, essa forrageira tem deficits
+    // Independente da época, essa forrageira tem déficits
     expect(result!.deficits.length).toBeGreaterThan(0)
   })
 
-  it('especie invalida usa fallback bovinos_corte', async () => {
+  it('espécie inválida usa fallback bovinos_corte', async () => {
     const products = [makeProduct()]
     const supabase = createMockSupabase({ products })
     const herd = makeHerd({ species: 'especie_inexistente' })
 
-    // Nao deve dar erro, usa fallback
+    // Não deve dar erro, usa fallback
     const result = await generateRecommendation(supabase, herd)
-    // O supabase.from('products').eq('species', ...) sera chamado com 'Bovinos Corte'
+    // O supabase.from('products').eq('species', ...) será chamado com 'Bovinos Corte'
     expect(supabase.from).toHaveBeenCalledWith('products')
   })
 
-  it('lote de engorda com confinamento recebe bonus de 20 pontos', async () => {
+  it('lote de engorda com confinamento recebe bônus de 20 pontos', async () => {
     const products = [
       makeProduct({ name: 'Confinamento Premium', line: 'RK', priority_score: 50 }),
     ]
@@ -647,7 +647,7 @@ describe('generateRecommendation', () => {
     expect(result!.reasons).toContainEqual(expect.stringContaining('pasto degradado'))
   })
 
-  it('aplica fator de raca quando breed_id esta presente', async () => {
+  it('aplica fator de raça quando breed_id está presente', async () => {
     const products = [makeProduct({ name: 'Mineral X', line: 'S', priority_score: 50 })]
     const breed = { id: 'breed-1', name: 'Angus' }
     const breedFactors = [{ breed_id: 'breed-1', phase: 'recria', cms_multiplier: 1.3 }]
@@ -657,11 +657,11 @@ describe('generateRecommendation', () => {
     const result = await generateRecommendation(supabase, herd)
 
     expect(result).not.toBeNull()
-    // cms_multiplier > 1.1 so should get +5 and reason about raca
+    // cms_multiplier > 1.1 so should get +5 and reason about raça
     expect(result!.reasons).toContainEqual(expect.stringContaining('Angus'))
   })
 
-  it('sem forage_id nao busca forrageira', async () => {
+  it('sem forage_id não busca forrageira', async () => {
     const products = [makeProduct()]
     const supabase = createMockSupabase({ products })
     const herd = makeHerd({ forage_id: null })
@@ -674,12 +674,12 @@ describe('generateRecommendation', () => {
 })
 
 // ============================================================================
-// TESTES: Recomendacao por especie
+// TESTES: Recomendação por espécie
 // ============================================================================
 
-describe('speciesMap - mapeamento de especies', () => {
+describe('speciesMap - mapeamento de espécies', () => {
   // Testamos indiretamente via generateRecommendation
-  // que o Supabase e chamado com o species correto
+  // que o Supabase é chamado com o species correto
 
   const species = [
     'bovinos_corte',
@@ -692,7 +692,7 @@ describe('speciesMap - mapeamento de especies', () => {
   ]
 
   species.forEach((sp) => {
-    it(`especie ${sp} faz query com species correto`, async () => {
+    it(`espécie ${sp} faz query com species correto`, async () => {
       const products = [makeProduct({ species: sp })]
       const supabase = createMockSupabase({ products })
       const herd = makeHerd({ species: sp })

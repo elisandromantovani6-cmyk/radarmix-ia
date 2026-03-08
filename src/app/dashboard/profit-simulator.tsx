@@ -207,7 +207,7 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
             )}
           </div>
 
-          {/* SCORE GENETICO */}
+          {/* SCORE GENÉTICO */}
           {result.genetic_score && (
             <div className="space-y-3">
               <GeneticBadge
@@ -220,7 +220,7 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
                 gmd_by_phase={result.genetic_score.gmd_by_phase}
               />
               <details className="bg-gray-800/30 rounded-xl p-4">
-                <summary className="text-xs text-gray-500 font-semibold uppercase cursor-pointer">Detalhes do score genetico</summary>
+                <summary className="text-xs text-gray-500 font-semibold uppercase cursor-pointer">Detalhes do score genético</summary>
                 <div className="mt-3 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Score declarado</span>
@@ -238,15 +238,15 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
                   </div>
                   <div className="border-t border-gray-700 my-1"></div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">GMD referencia (raca)</span>
+                    <span className="text-gray-400">GMD referência (raça)</span>
                     <span className="text-gray-300">{fmtNum(result.genetic_score.gmd_reference, 3)} kg/dia</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">GMD ajustado (genetico)</span>
+                    <span className="text-gray-400">GMD ajustado (genético)</span>
                     <span className="text-green-400 font-bold">{fmtNum(result.genetic_score.gmd_adjusted, 3)} kg/dia</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Rendimento carcaca</span>
+                    <span className="text-gray-400">Rendimento carcaça</span>
                     <span className="text-gray-300">{fmtNum(result.carcass_yield * 100, 0)}%</span>
                   </div>
                 </div>
@@ -265,7 +265,7 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
                     <span className="text-yellow-400 font-bold">{fmtNum(result.mortality_rate, 1)}% ({result.dead_heads} cab.)</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Cabecas efetivas</span>
+                    <span className="text-gray-400">Cabeças efetivas</span>
                     <span className="text-white font-bold">{result.effective_heads} de {result.head_count}</span>
                   </div>
                   {result.mortality_loss > 0 && (
@@ -288,7 +288,7 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
                     <span className="text-red-400">{fmt(result.taxes.total_per_head)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold">
-                    <span className="text-gray-300">Receita liquida</span>
+                    <span className="text-gray-300">Receita líquida</span>
                     <span className="text-green-400">{fmt(result.net_revenue)}</span>
                   </div>
                 </>
@@ -348,7 +348,7 @@ export default function ProfitSimulator({ herdId, herdName }: { herdId: string, 
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Receita liquida</span>
+                <span className="text-gray-400">Receita líquida</span>
                 <span className="text-green-400 font-bold">{fmt(result.net_revenue || result.sale_revenue)}</span>
               </div>
               <div className="border-t border-gray-700 my-1"></div>

@@ -103,7 +103,7 @@ export async function generateRecommendation(
     if (season === 'seca') {
       if (product.line === 'Proteico' || product.line === 'Prot.Energ' || product.line === 'FazCarne') {
         score += 15
-        reasons.push('Ideal para ' + seasonLabel + ' - suplementacao proteica')
+        reasons.push('Ideal para ' + seasonLabel + ' - suplementação proteica')
       }
       if (product.pb_percent && product.pb_percent > 20) {
         score += 10
@@ -129,7 +129,7 @@ export async function generateRecommendation(
     if (breedFactor) {
       if (breedFactor.cms_multiplier > 1.1) {
         score += 5
-        reasons.push('Raca ' + (breedInfo?.name || '') + ' com maior exigencia nutricional')
+        reasons.push('Raça ' + (breedInfo?.name || '') + ' com maior exigência nutricional')
       }
     }
 
@@ -137,7 +137,7 @@ export async function generateRecommendation(
     if (herd.pasture_condition === 'degradado') {
       if (product.line === 'Proteico' || product.line === 'Prot.Energ') {
         score += 10
-        reasons.push('Compensa deficit de pasto degradado')
+        reasons.push('Compensa déficit de pasto degradado')
       }
     }
 
@@ -148,7 +148,7 @@ export async function generateRecommendation(
     }
     if (herd.main_phase === 'engorda' && product.name && product.name.toLowerCase().includes('confinamento')) {
       score += 20
-      reasons.push('Especifico para confinamento - referencia: GMD 1,79 kg/dia em Nelore (caso real MT)')
+      reasons.push('Específico para confinamento - referência: GMD 1,79 kg/dia em Nelore (caso real MT)')
     }
 
     // Calcular consumo estimado (g/cab/dia)
@@ -180,11 +180,11 @@ export function analyzeForageDeficits(forage: any, season: string): string[] {
   const na_val = forage[prefix + 'na_g_kg']
   const zn = forage[prefix + 'zn_mg_kg']
 
-  if (pb !== null && pb < 7) deficits.push('Proteina bruta baixa (' + pb + '% PB)')
+  if (pb !== null && pb < 7) deficits.push('Proteína bruta baixa (' + pb + '% PB)')
   if (ndt !== null && ndt < 50) deficits.push('Energia baixa (' + ndt + '% NDT)')
-  if (p !== null && p < 1.5) deficits.push('Fosforo deficiente')
-  if (na_val !== null && na_val < 0.5) deficits.push('Sodio deficiente')
-  if (ca !== null && ca < 2.0) deficits.push('Calcio baixo')
+  if (p !== null && p < 1.5) deficits.push('Fósforo deficiente')
+  if (na_val !== null && na_val < 0.5) deficits.push('Sódio deficiente')
+  if (ca !== null && ca < 2.0) deficits.push('Cálcio baixo')
   if (zn !== null && zn < 20) deficits.push('Zinco deficiente')
 
   if (season === 'seca' && deficits.length === 0) {
@@ -199,21 +199,21 @@ export function checkMineralMatch(product: any, deficits: string[]): { score: nu
   const reasons: string[] = []
 
   for (const deficit of deficits) {
-    if (deficit.includes('Fosforo') && product.p_g_kg && product.p_g_kg > 40) {
+    if (deficit.includes('Fósforo') && product.p_g_kg && product.p_g_kg > 40) {
       score += 8
-      reasons.push('Corrige deficit de fosforo (' + product.p_g_kg + 'g/kg P)')
+      reasons.push('Corrige déficit de fósforo (' + product.p_g_kg + 'g/kg P)')
     }
-    if (deficit.includes('Sodio') && product.na_g_kg && product.na_g_kg > 50) {
+    if (deficit.includes('Sódio') && product.na_g_kg && product.na_g_kg > 50) {
       score += 5
-      reasons.push('Fornece sodio adequado')
+      reasons.push('Fornece sódio adequado')
     }
-    if (deficit.includes('Calcio') && product.ca_g_kg && product.ca_g_kg > 80) {
+    if (deficit.includes('Cálcio') && product.ca_g_kg && product.ca_g_kg > 80) {
       score += 5
-      reasons.push('Corrige deficit de calcio')
+      reasons.push('Corrige déficit de cálcio')
     }
-    if (deficit.includes('Proteina') && product.pb_percent && product.pb_percent > 20) {
+    if (deficit.includes('Proteína') && product.pb_percent && product.pb_percent > 20) {
       score += 12
-      reasons.push('Compensa baixa proteina da forragem')
+      reasons.push('Compensa baixa proteína da forragem')
     }
     if (deficit.includes('Energia') && product.ndt_percent && product.ndt_percent > 50) {
       score += 10
@@ -221,7 +221,7 @@ export function checkMineralMatch(product: any, deficits: string[]): { score: nu
     }
     if (deficit.includes('Zinco') && product.zn_mg_kg && product.zn_mg_kg > 2000) {
       score += 5
-      reasons.push('Fornece zinco para imunidade e reproducao')
+      reasons.push('Fornece zinco para imunidade e reprodução')
     }
   }
 
@@ -284,7 +284,7 @@ export function estimateConsumption(product: any, herd: HerdData, breedFactor: a
 export function generateExplanation(rec: Recommendation, herdName: string): string {
   const lines: string[] = []
 
-  lines.push('RECOMENDACAO PARA ' + herdName.toUpperCase())
+  lines.push('RECOMENDAÇÃO PARA ' + herdName.toUpperCase())
   lines.push('')
   lines.push('Produto recomendado: ' + rec.product.name)
   lines.push('Linha: ' + rec.product.line)
@@ -293,7 +293,7 @@ export function generateExplanation(rec: Recommendation, herdName: string): stri
   lines.push('')
 
   if (rec.deficits.length > 0) {
-    lines.push('Deficits identificados na forrageira:')
+    lines.push('Déficits identificados na forrageira:')
     rec.deficits.forEach(d => lines.push('  - ' + d))
     lines.push('')
   }
