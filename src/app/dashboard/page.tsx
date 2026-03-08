@@ -4,6 +4,8 @@ import LogoutButton from './logout-button'
 import FarmSection from './farm-section'
 import ClimateWidget from './climate-widget'
 import CopilotPanel from './copilot-panel'
+import PriceRadarPanel from './price-radar-panel'
+import PastureScorePanel from './pasture-score-panel'
 import InstallPrompt from './install-prompt'
 import Link from 'next/link'
 
@@ -53,6 +55,8 @@ export default async function DashboardPage() {
         <InstallPrompt />
         {farm && <CopilotPanel />}
         {farm && <ClimateWidget />}
+        {farm && <PriceRadarPanel />}
+        {farm && <PastureScorePanel />}
         <FarmSection farm={farm} herds={herds} totalHeads={totalHeads} userId={user.id} />
       </main>
 

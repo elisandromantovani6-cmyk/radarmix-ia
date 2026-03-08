@@ -10,6 +10,12 @@ import ComparePanel from './compare-panel'
 import StockingRatePanel from './stocking-rate-panel'
 import HealthPanel from './health-panel'
 import CochoPanel from './cocho-panel'
+import WasteDetectorPanel from './waste-detector-panel'
+import ProfitPredictionPanel from './profit-prediction-panel'
+import SellTimingPanel from './sell-timing-panel'
+import DietPanel from './diet-panel'
+import OraclePanel from './oracle-panel'
+import WeightEstimatePanel from './weight-estimate-panel'
 
 const PHASE_LABELS: Record<string, string> = {
   cria: 'Cria', recria: 'Recria', engorda: 'Engorda', lactacao: 'Lactação',
@@ -78,6 +84,12 @@ export default function HerdCard({ herd, allHerds }: { herd: any, allHerds: any[
           { key: 'pasture', label: '🌿 Lotação', active: 'bg-emerald-500 text-white', idle: 'badge-green' },
           { key: 'health', label: '💉 Sanitário', active: 'bg-pink-500 text-white', idle: 'badge-pink' },
           { key: 'cocho', label: '📸 Cocho', active: 'bg-cyan-500 text-white', idle: 'badge-blue' },
+          { key: 'waste', label: '💡 Desperdício', active: 'bg-yellow-500 text-white', idle: 'badge-amber' },
+          { key: 'predict', label: '📈 Previsão IA', active: 'bg-indigo-500 text-white', idle: 'badge-purple' },
+          { key: 'sell', label: '🕐 Vender', active: 'bg-teal-500 text-white', idle: 'badge-green' },
+          { key: 'diet', label: '🍽️ Dieta IA', active: 'bg-lime-600 text-white', idle: 'badge-green' },
+          { key: 'oracle', label: '🔮 Oráculo', active: 'bg-violet-500 text-white', idle: 'badge-purple' },
+          { key: 'weightEst', label: '📏 Estimar Peso', active: 'bg-sky-500 text-white', idle: 'badge-blue' },
         ].map(btn => (
           <button key={btn.key} onClick={() => toggle(btn.key)}
             className={"badge cursor-pointer transition-all hover:scale-[1.02] whitespace-nowrap shrink-0 " + (activePanel === btn.key ? btn.active + ' border-transparent' : btn.idle)}>
@@ -94,6 +106,12 @@ export default function HerdCard({ herd, allHerds }: { herd: any, allHerds: any[
       {activePanel === 'pasture' && <div className="slide-up"><StockingRatePanel herdId={herd.id} herdName={herd.name} headCount={herd.head_count} avgWeight={herd.avg_weight_kg} /></div>}
       {activePanel === 'health' && <div className="slide-up"><HealthPanel herdId={herd.id} herdName={herd.name} headCount={herd.head_count} /></div>}
       {activePanel === 'cocho' && <div className="slide-up"><CochoPanel herdId={herd.id} herdName={herd.name} /></div>}
+      {activePanel === 'waste' && <div className="slide-up"><WasteDetectorPanel herdId={herd.id} /></div>}
+      {activePanel === 'predict' && <div className="slide-up"><ProfitPredictionPanel herdId={herd.id} /></div>}
+      {activePanel === 'sell' && <div className="slide-up"><SellTimingPanel herdId={herd.id} /></div>}
+      {activePanel === 'diet' && <div className="slide-up"><DietPanel herdId={herd.id} /></div>}
+      {activePanel === 'oracle' && <div className="slide-up"><OraclePanel herdId={herd.id} /></div>}
+      {activePanel === 'weightEst' && <div className="slide-up"><WeightEstimatePanel herdId={herd.id} /></div>}
     </div>
   )
 }
