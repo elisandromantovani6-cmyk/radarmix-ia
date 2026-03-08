@@ -157,6 +157,48 @@ export async function GET(request: NextRequest) {
     const myRank = ranking.findIndex(r => (r as any).isMe) + 1
     const percentile = Math.round((1 - myRank / ranking.length) * 100)
 
+    // Notificações de ranking (9f)
+    const notifications: string[] = []
+
+    // Buscar posição anterior salva
+    const { data: prevRanking } = await supabase
+      .from('ranking_history')
+      .select('rank, percentile, score, badges_count')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    const prev = prevRanking?.[0]
+
+    if (prev) {
+      if (myRank < prev.rank) {
+        notifications.push(`Você subiu ${prev.rank - myRank} posição${prev.rank - myRank > 1 ? 'ões' : ''} no ranking! Agora está em ${myRank}º lugar.`)
+      }
+      if (percentile > prev.percentile && percentile >= 80) {
+        notifications.push(`Parabéns! Você entrou pro Top ${100 - percentile}% dos produtores!`)
+      }
+      if (earnedBadges.length > prev.badges_count) {
+        const newBadges = earnedBadges.length - prev.badges_count
+        const latestBadge = earnedBadges[earnedBadges.length - 1]
+        notifications.push(`Nova conquista desbloqueada: ${latestBadge.icon} ${latestBadge.name}!`)
+      }
+      if (score > prev.score * 1.2) {
+        notifications.push('Seu score cresceu mais de 20%! Continue assim!')
+      }
+    } else if (earnedBadges.length > 0) {
+      notifications.push(`Bem-vindo ao ranking! Você já tem ${earnedBadges.length} conquista${earnedBadges.length > 1 ? 's' : ''}!`)
+    }
+
+    // Salvar posição atual para comparação futura
+    await supabase.from('ranking_history').upsert({
+      user_id: user.id,
+      rank: myRank,
+      percentile,
+      score,
+      badges_count: earnedBadges.length,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' }).select()
+
     return NextResponse.json({
       score,
       rank: myRank,
@@ -166,6 +208,7 @@ export async function GET(request: NextRequest) {
       badges: { earned: earnedBadges, locked: lockedBadges },
       ranking: ranking.slice(0, 10),
       farm_name: farm?.name || '',
+      notifications,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

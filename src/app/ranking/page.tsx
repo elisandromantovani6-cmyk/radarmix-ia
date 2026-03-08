@@ -57,8 +57,25 @@ export default function RankingPage() {
   const pointsToNext = nextThreshold - data.score
   notifications.push({ icon: '🎯', text: `Próximo nível: +${pointsToNext} pontos (meta: ${nextThreshold} pts)`, color: 'border-violet-500/30 bg-violet-500/5' })
 
-  // Notificações de conquistas mockadas (cards detalhados)
+  // Notificações reais do servidor (comparação com histórico)
+  const serverNotifications: { id: number, icon: string, title: string, description: string, timestamp: string, type: 'conquista' | 'melhoria' | 'info', isNew: boolean }[] = []
+  if (data.notifications && data.notifications.length > 0) {
+    data.notifications.forEach((n: string, i: number) => {
+      serverNotifications.push({
+        id: 1000 + i,
+        icon: n.includes('subiu') ? '🏆' : n.includes('conquista') ? '🥇' : n.includes('score') ? '📈' : '🔔',
+        title: n,
+        description: '',
+        timestamp: 'Agora',
+        type: n.includes('conquista') ? 'conquista' : 'melhoria',
+        isNew: true,
+      })
+    })
+  }
+
+  // Notificações de conquistas (cards detalhados)
   const achievementNotifications = [
+    ...serverNotifications,
     {
       id: 1,
       icon: '🏆',

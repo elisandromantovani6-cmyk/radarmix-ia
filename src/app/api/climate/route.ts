@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { predictThermalStress } from '@/lib/thermal-stress'
 import { NextRequest, NextResponse } from 'next/server'
 
 const OPENWEATHER_KEY = process.env.OPENWEATHER_API_KEY
@@ -164,6 +165,50 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Previsão de estresse térmico por lote (breed_group)
+    let breedGroup = 'zebuino' // default para MT
+    const { data: herds } = await supabase
+      .from('herds')
+      .select('breed_id, farm:farms!inner(user_id)')
+      .eq('farms.user_id', user.id)
+      .limit(1)
+
+    if (herds && herds.length > 0 && herds[0].breed_id) {
+      const { data: breed } = await supabase
+        .from('breeds')
+        .select('name, category')
+        .eq('id', herds[0].breed_id)
+        .single()
+      if (breed) {
+        const name = (breed.name || '').toLowerCase()
+        if (breed.category === 'leite' || ['girolando', 'jersey', 'gir leiteiro'].some(t => name.includes(t))) {
+          breedGroup = 'leite'
+        } else if (['angus', 'hereford', 'charolês', 'limousin', 'simental'].some(t => name.includes(t))) {
+          breedGroup = 'taurino'
+        } else if (name.includes('senepol')) {
+          breedGroup = 'senepol'
+        } else if (name.includes('f1') || name.includes('cruzamento') || name.includes('composto')) {
+          breedGroup = 'cruzamento'
+        } else {
+          breedGroup = 'zebuino'
+        }
+      }
+    }
+
+    const forecastForStress = dailyForecast.map(d => ({
+      date: d.date,
+      day_label: d.day_label,
+      temp: d.temp,
+      humidity: d.humidity,
+    }))
+
+    const thermalStress = predictThermalStress(
+      temp,
+      humidity,
+      forecastForStress,
+      breedGroup,
+    )
+
     // Alertas inteligentes
     const alerts: string[] = []
 
@@ -178,6 +223,16 @@ export async function GET(request: NextRequest) {
     const rainDays = dailyForecast.filter(d => d.rain > 0)
     if (rainDays.length > 0) {
       alerts.push('🌧️ Chuva prevista para ' + rainDays.map(d => d.day_label).join(', ') + ' — planeje manejo e pesagens para dias secos.')
+    }
+
+    // Alertas antecipados de estresse térmico (22d)
+    for (const stressAlert of thermalStress.advance_alerts) {
+      alerts.push('🔥 ' + stressAlert)
+    }
+
+    // Impacto no GMD (22b)
+    if (thermalStress.current_stress.level !== 'normal') {
+      alerts.push('📉 Estresse térmico atual → impacto de ' + thermalStress.current_stress.gmd_impact_kg.toFixed(2) + ' kg/dia no GMD (' + breedGroup + ')')
     }
 
     // Alerta de seca
@@ -229,6 +284,16 @@ export async function GET(request: NextRequest) {
       forecast: dailyForecast,
       alerts,
       diet_suggestion: dietSuggestion,
+      thermal_stress: {
+        breed_group: thermalStress.breed_group,
+        heat_tolerance: thermalStress.heat_tolerance,
+        current_stress: thermalStress.current_stress,
+        forecast: thermalStress.forecast,
+        advance_alerts: thermalStress.advance_alerts,
+        stress_days_count: thermalStress.stress_days_count,
+        projected_gmd_loss_30d: thermalStress.projected_gmd_loss_30d,
+        management_summary: thermalStress.management_summary,
+      },
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
