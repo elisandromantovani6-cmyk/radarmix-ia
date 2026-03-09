@@ -33,7 +33,7 @@ export default function FarmSection({ farm, herds, totalHeads, userId }: any) {
           <button onClick={() => setShowCreateFarm(true)} className="btn-primary px-8 py-3.5 text-[14px]">Cadastrar Fazenda</button>
         </div>
         {showCreateFarm && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center z-50 px-0 sm:px-4 modal-sheet">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center z-[60] px-0 sm:px-4 modal-sheet">
             <div className="card p-6 sm:p-7 w-full max-w-md animate-in rounded-t-3xl sm:rounded-2xl">
               <div className="pull-indicator sm:hidden"></div>
               <h3 className="text-[18px] font-bold text-white mb-5">Nova Fazenda</h3>

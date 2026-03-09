@@ -179,8 +179,8 @@ export default function MarketplacePage() {
 
       {/* Modal de cotação */}
       {quoteModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center z-50 px-0 sm:px-4 modal-sheet">
-          <div className="card p-5 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in rounded-t-3xl sm:rounded-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center z-[60] px-0 sm:px-4 modal-sheet">
+          <div className="card p-5 sm:p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto animate-in rounded-t-3xl sm:rounded-2xl">
             <div className="pull-indicator sm:hidden"></div>
             {!quoteSent ? (
               <>

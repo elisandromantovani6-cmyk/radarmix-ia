@@ -32,16 +32,17 @@ body {
   color: var(--text-1);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+html {
+  overflow-x: hidden;
 }
 
 /* Ambient gradient background */
 body::after {
   content: '';
   position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  inset: 0;
   background: radial-gradient(ellipse at 30% 20%, rgba(249, 115, 22, 0.04) 0%, transparent 50%),
               radial-gradient(ellipse at 70% 80%, rgba(249, 115, 22, 0.02) 0%, transparent 50%);
   pointer-events: none;
@@ -184,12 +185,13 @@ body::after {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(5, 5, 6, 0.92);
+  background: rgba(5, 5, 6, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   z-index: 50;
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: auto;
 }
 
 .bottom-nav-item {
@@ -279,7 +281,7 @@ body::after {
 /* Floating action button */
 .fab {
   position: fixed;
-  bottom: 80px;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   right: 20px;
   width: 56px;
   height: 56px;
@@ -292,7 +294,7 @@ body::after {
   font-size: 24px;
   font-weight: 700;
   box-shadow: 0 4px 20px rgba(249, 115, 22, 0.3), 0 0 40px rgba(249, 115, 22, 0.1);
-  z-index: 40;
+  z-index: 45;
   transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -338,9 +340,10 @@ body::after {
   }
   .modal-sheet > div {
     border-radius: 24px 24px 0 0 !important;
-    max-height: 90vh !important;
+    max-height: 85vh !important;
     width: 100% !important;
     max-width: 100% !important;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

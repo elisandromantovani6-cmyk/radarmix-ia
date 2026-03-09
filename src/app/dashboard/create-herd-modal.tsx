@@ -217,8 +217,8 @@ export default function CreateHerdModal({ farmId, onClose }: { farmId: string, o
   const isBovino = species.startsWith('bovinos') || species === 'bezerros' || species === 'reprodutores'
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 px-0 sm:px-4 modal-sheet" role="dialog" aria-labelledby="create-herd-title">
-      <div className="card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[60] px-0 sm:px-4 modal-sheet" role="dialog" aria-labelledby="create-herd-title">
+      <div className="card p-6 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl">
         <h3 id="create-herd-title" className="text-xl font-bold mb-1 text-white">Novo Lote</h3>
         <p className="text-xs text-gray-500 mb-4">Preencha o máximo possível para uma recomendação mais precisa</p>
 
